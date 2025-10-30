@@ -13,6 +13,7 @@ import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
+import Pyqs from './pages/Pyqs'; // Add this import
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/blog/:id" element={<BlogPost />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/pyqs" element={<Pyqs />} /> {/* Add this route */}
               </Routes>
             </main>
             <Footer />
@@ -40,4 +42,3 @@ function App() {
 }
 
 export default App;
-

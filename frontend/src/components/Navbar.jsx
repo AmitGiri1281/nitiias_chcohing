@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { Menu, X, User, ChevronDown } from 'lucide-react';
+import { Menu, X, User, ChevronDown, FileText } from 'lucide-react'; // Add FileText icon
 import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = () => {
@@ -59,6 +59,14 @@ const Navbar = () => {
                 className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-300"
               >
                 {t('blog')}
+              </a>
+              {/* Add PYQs Link Here */}
+              <a
+                href="/pyqs"
+                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-300 flex items-center"
+              >
+                <FileText size={16} className="mr-1" />
+                PYQs
               </a>
               {user?.role === 'admin' && (
                 <a
@@ -156,6 +164,15 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
             >
               {t('blog')}
+            </a>
+            {/* Add PYQs Link to Mobile Menu */}
+            <a
+              href="/pyqs"
+              className="block px-3 py-3 text-gray-700 hover:text-primary-600 rounded-md text-base font-medium transition duration-300 flex items-center"
+              onClick={() => setIsOpen(false)}
+            >
+              <FileText size={16} className="mr-2" />
+              PYQs
             </a>
             {user?.role === 'admin' && (
               <a

@@ -12,6 +12,7 @@ const resources = {
       admin: 'Admin',
       login: 'Login',
       logout: 'Logout',
+      profile: 'Profile', // Added this line
       
       // Hero section
       welcome: 'Welcome to Niti IAS',
@@ -89,6 +90,7 @@ const resources = {
       admin: 'एडमिन',
       login: 'लॉगिन',
       logout: 'लॉगआउट',
+      profile: 'प्रोफाइल', // Added this line
       
       // Hero section
       welcome: 'नीति आईएएस में आपका स्वागत है',
