@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const pyqSchema = new mongoose.Schema({
+const pyqSchema = new mongoose.Schema({ // C:\Users\Lenovo\OneDrive\Desktop\NITIIAS choching\backend\models\Pyq.js
   title: {
     type: String,
     required: true,

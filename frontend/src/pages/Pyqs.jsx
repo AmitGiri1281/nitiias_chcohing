@@ -248,4 +248,4 @@ const Pyqs = () => {
   );
 };
 
-export default Pyqs;
+export default Pyqs;  

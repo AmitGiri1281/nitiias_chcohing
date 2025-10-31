@@ -19,4 +19,4 @@ router.post('/', protect, admin, upload.single('file'), createPyq);
 router.put('/:id', protect, admin, upload.single('file'), updatePyq);
 router.delete('/:id', protect, admin, deletePyq);
 
-module.exports = router;
+module.exports = router; 
