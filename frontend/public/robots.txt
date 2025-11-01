@@ -1,0 +1,13 @@
+# robots.txt for Niti IAS Coaching Institute
+User-agent: *
+Allow: /
+
+# Block internal or sensitive routes (if any)
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://www.nitiias.org/sitemap.xml
+
+Host: https://www.nitiias.org

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset 
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Home -->
+  <url>
+    <loc>https://www.nitiias.org/</loc>
+    <lastmod>2025-10-31</lastmod>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- About -->
+  <url>
+    <loc>https://www.nitiias.org/about</loc>
+    <lastmod>2025-10-31</lastmod>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Courses -->
+  <url>
+    <loc>https://www.nitiias.org/courses</loc>
+    <lastmod>2025-10-31</lastmod>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- PYQs -->
+  <url>
+    <loc>https://www.nitiias.org/pyqs</loc>
+    <lastmod>2025-10-31</lastmod>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Study Materials -->
+  <url>
+    <loc>https://www.nitiias.org/study-materials</loc>
+    <lastmod>2025-10-31</lastmod>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Blog -->
+  <url>
+    <loc>https://www.nitiias.org/blog</loc>
+    <lastmod>2025-10-31</lastmod>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Contact -->
+  <url>
+    <loc>https://www.nitiias.org/contact</loc>
+    <lastmod>2025-10-31</lastmod>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>
