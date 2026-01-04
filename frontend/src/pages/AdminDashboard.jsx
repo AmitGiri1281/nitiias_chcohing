@@ -4,8 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 import AdminBlogEditor from '../components/AdminBlogEditor';
 import AdminCourseEditor from '../components/AdminCourseEditor';
-import AdminPyqEditor from '../components/AdminPyqEditor'; // Add this import
-import { Edit, Trash2, Eye, Plus, FileText } from 'lucide-react'; // Add FileText icon
+import AdminPyqEditor from '../components/AdminPyqEditor';
+import { Edit, Trash2, Eye, Plus, FileText, Users, Clock, Target } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -13,14 +13,20 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('blogs');
   const [blogs, setBlogs] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [pyqs, setPyqs] = useState([]); // Add PYQs state
+  const [pyqs, setPyqs] = useState([]);
   const [editingBlog, setEditingBlog] = useState(null);
   const [editingCourse, setEditingCourse] = useState(null);
-  const [editingPyq, setEditingPyq] = useState(null); // Add PYQ editing state
+  const [editingPyq, setEditingPyq] = useState(null);
   const [showBlogEditor, setShowBlogEditor] = useState(false);
   const [showCourseEditor, setShowCourseEditor] = useState(false);
-  const [showPyqEditor, setShowPyqEditor] = useState(false); // Add PYQ editor state
+  const [showPyqEditor, setShowPyqEditor] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pyqStats, setPyqStats] = useState({
+    total: 0,
+    published: 0,
+    totalQuestions: 0,
+    totalMarks: 0
+  });
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -33,18 +39,29 @@ const AdminDashboard = () => {
       setLoading(true);
       if (activeTab === 'blogs') {
         const response = await api.get('/blogs/admin');
-        setBlogs(response.data.blogs);
+        setBlogs(response.data.blogs || []);
       } else if (activeTab === 'courses') {
         const response = await api.get('/courses');
-        setCourses(response.data);
+        setCourses(response.data || []);
       } else if (activeTab === 'pyqs') {
-        // Fetch PYQs for admin
+        // Use the new admin endpoint
         try {
-          const response = await api.get('/pyqs/admin');
-          setPyqs(response.data);
+          const response = await api.get('/pyqs/admin/list');
+          const pyqsData = response.data || [];
+          setPyqs(pyqsData);
+          
+          // Calculate statistics
+          const stats = {
+            total: pyqsData.length,
+            published: pyqsData.filter(p => p.isPublished).length,
+            totalQuestions: pyqsData.reduce((sum, pyq) => sum + (pyq.totalQuestions || 0), 0),
+            totalMarks: pyqsData.reduce((sum, pyq) => sum + (pyq.totalMarks || 0), 0)
+          };
+          setPyqStats(stats);
         } catch (error) {
           console.error('Error fetching PYQs:', error);
           setPyqs([]);
+          setPyqStats({ total: 0, published: 0, totalQuestions: 0, totalMarks: 0 });
         }
       }
     } catch (error) {
@@ -141,28 +158,44 @@ const AdminDashboard = () => {
 
   const handleSavePyq = async (formData) => {
     try {
+      // Convert form data to FormData object
+      const formDataObj = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (key === 'questions') {
+          formDataObj.append(key, formData[key]);
+        } else {
+          formDataObj.append(key, formData[key]);
+        }
+      });
+
       if (editingPyq) {
-        await api.put(`/pyqs/${editingPyq._id}`, formData);
+        await api.put(`/pyqs/admin/${editingPyq._id}`, formDataObj);
       } else {
-        await api.post('/pyqs', formData);
+        await api.post('/pyqs/admin', formDataObj);
       }
       setShowPyqEditor(false);
       setEditingPyq(null);
       fetchData();
     } catch (error) {
-      console.error('Error saving PYQ:', error);
+      console.error('Error saving PYQ:', error.response?.data || error.message);
+      alert(`Error saving PYQ: ${error.response?.data?.message || error.message}`);
     }
   };
 
   const handleDeletePyq = async (id) => {
     if (window.confirm('Are you sure you want to delete this PYQ?')) {
       try {
-        await api.delete(`/pyqs/${id}`);
+        await api.delete(`/pyqs/admin/${id}`);
         fetchData();
       } catch (error) {
         console.error('Error deleting PYQ:', error);
       }
     }
+  };
+
+  const handleViewPyq = (pyq) => {
+    // Navigate to PYQ test page
+    window.open(`/pyq/${pyq._id}`, '_blank');
   };
 
   /** ---------------- ACCESS CHECK ---------------- */
@@ -421,6 +454,54 @@ const AdminDashboard = () => {
       ) : (
         /* PYQ Management Section */
         <div>
+          {/* PYQ Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg mr-4">
+                  <FileText className="text-green-600" size={24} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total PYQs</p>
+                  <p className="text-2xl font-bold">{pyqStats.total}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg mr-4">
+                  <Target className="text-blue-600" size={24} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Published</p>
+                  <p className="text-2xl font-bold">{pyqStats.published}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 rounded-lg mr-4">
+                  <Users className="text-purple-600" size={24} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total Questions</p>
+                  <p className="text-2xl font-bold">{pyqStats.totalQuestions}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 rounded-lg mr-4">
+                  <Clock className="text-yellow-600" size={24} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total Marks</p>
+                  <p className="text-2xl font-bold">{pyqStats.totalMarks}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold text-gray-900">PYQ Management</h2>
             <button
@@ -452,15 +533,29 @@ const AdminDashboard = () => {
                             </span>
                           </div>
                           <p className="text-sm text-gray-500">
-                            {pyq.exam} • {pyq.year} • {pyq.subject} • {pyq.downloads || 0} downloads
+                            {pyq.exam} • {pyq.year} • {pyq.subject} • {pyq.totalQuestions || 0} questions
                           </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-xs text-gray-400">
+                              <Users size={12} className="inline mr-1" />
+                              {pyq.attempts || 0} attempts
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              <Eye size={12} className="inline mr-1" />
+                              {pyq.views || 0} views
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              <Target size={12} className="inline mr-1" />
+                              Avg: {(pyq.averageScore || 0).toFixed(1)}%
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => window.open(`https://nitiias-chcohing-backend.onrender.com/${pyq.file}`, '_blank')}
+                          onClick={() => handleViewPyq(pyq)}
                           className="text-gray-400 hover:text-gray-500"
-                          title="View PDF"
+                          title="View Test"
                         >
                           <Eye size={20} />
                         </button>
@@ -498,4 +593,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard; 
+export default AdminDashboard;

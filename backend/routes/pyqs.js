@@ -6,17 +6,21 @@ const {
   updatePyq,
   deletePyq,
   getAdminPyqs,
+  submitTest
 } = require('../controllers/pyqController');
 const { protect, admin } = require('../middleware/auth');
-const upload = require('../middleware/upload');
 
 const router = express.Router();
 
+// Public routes
 router.get('/', getPyqs);
-router.get('/admin', protect, admin, getAdminPyqs);
 router.get('/:id', getPyqById);
-router.post('/', protect, admin, upload.single('file'), createPyq);
-router.put('/:id', protect, admin, upload.single('file'), updatePyq);
-router.delete('/:id', protect, admin, deletePyq);
+router.post('/:id/submit', submitTest); // For submitting test answers
 
-module.exports = router; 
+// Admin routes
+router.get('/admin/list', protect, admin, getAdminPyqs);
+router.post('/admin', protect, admin, createPyq);
+router.put('/admin/:id', protect, admin, updatePyq);
+router.delete('/admin/:id', protect, admin, deletePyq);
+
+module.exports = router;

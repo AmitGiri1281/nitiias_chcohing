@@ -7,12 +7,9 @@ import {
   Users,
   Award,
   FileText,
-  Download,
   Calendar,
 } from "lucide-react";
 import { api } from "../utils/api";
-
-const BASE_URL = import.meta.env.VITE_API_URL;
 
 const Home = () => {
   const { t } = useTranslation();
@@ -169,16 +166,26 @@ const Home = () => {
                       {pyq.title}
                     </h3>
 
-                    <a
-                      href={`${BASE_URL}/${pyq.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Download PYQ PDF"
-                      className="w-full flex items-center justify-center bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
-                    >
-                      <Download size={16} className="mr-2" />
-                      Download PDF
-                    </a>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {pyq.subject} • {pyq.totalQuestions || 0} questions
+                    </p>
+
+                    <div className="flex justify-between items-center">
+                      <Link
+                        to={`/pyq/${pyq._id}`}
+                        className="flex-1 flex items-center justify-center bg-green-600 text-white py-2 rounded-md hover:bg-green-700 mr-2"
+                      >
+                        <FileText size={16} className="mr-2" />
+                        Take Test
+                      </Link>
+                      <Link
+                        to={`/pyq/${pyq._id}/study`}
+                        className="flex-1 flex items-center justify-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                      >
+                        <BookOpen size={16} className="mr-2" />
+                        Study
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}

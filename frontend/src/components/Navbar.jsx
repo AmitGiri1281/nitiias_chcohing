@@ -57,16 +57,16 @@ const Navbar = () => {
               </span>
             </Link>
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-6">
-              <Link to="/">{t('home')}</Link>
-              <Link to="/courses">{t('courses')}</Link>
-              <Link to="/blog">{t('blog')}</Link>
-              <Link to="/pyqs" className="flex items-center">
-                <FileText size={16} className="mr-1" /> PYQs
-              </Link>
-              {user?.role === 'admin' && <Link to="/admin">{t('admin')}</Link>}
-            </div>
+           {/* Desktop Menu - Update the PYQs link */}
+<div className="hidden md:flex items-center space-x-6">
+  <Link to="/">{t('home')}</Link>
+  <Link to="/courses">{t('courses')}</Link>
+  <Link to="/blog">{t('blog')}</Link>
+  <Link to="/pyqs" className="flex items-center">
+    <FileText size={16} className="mr-1" /> PYQs
+  </Link>
+  {user?.role === 'admin' && <Link to="/admin">{t('admin')}</Link>}
+</div>
 
             {/* Right Side */}
             <div className="flex items-center space-x-4">

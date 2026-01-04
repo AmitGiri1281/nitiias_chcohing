@@ -1,9 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
   const { t } = useTranslation();
-  const [pyqData, setPyqData] = useState(initialData || {
+  const [activeTab, setActiveTab] = useState('basic');
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState({
+    questionNumber: 1,
+    question: '',
+    questionHindi: '',
+    options: [
+      { text: '', textHindi: '', isCorrect: false },
+      { text: '', textHindi: '', isCorrect: false },
+      { text: '', textHindi: '', isCorrect: false },
+      { text: '', textHindi: '', isCorrect: false }
+    ],
+    answer: '',
+    answerHindi: '',
+    explanation: '',
+    explanationHindi: '',
+    difficulty: 'Medium',
+    marks: 1,
+    tags: '',
+    category: ''
+  });
+
+  const [pyqData, setPyqData] = useState({
     title: '',
     titleHindi: '',
     description: '',
@@ -12,303 +34,661 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
     year: new Date().getFullYear(),
     subject: '',
     subjectHindi: '',
-    questions: '',
     category: '',
     isPublished: false,
-    file: null
+    timeLimit: 180,
+    instructions: 'Answer all questions. Each question carries marks as indicated.',
+    instructionsHindi: 'सभी प्रश्नों के उत्तर दें। प्रत्येक प्रश्न के लिए अंक निर्धारित हैं।',
+    tags: ''
   });
 
-  const [file, setFile] = useState(null);
-  const [fileError, setFileError] = useState('');
+  useEffect(() => {
+    if (initialData) {
+      setPyqData({
+        title: initialData.title || '',
+        titleHindi: initialData.titleHindi || '',
+        description: initialData.description || '',
+        descriptionHindi: initialData.descriptionHindi || '',
+        exam: initialData.exam || 'UPSC',
+        year: initialData.year || new Date().getFullYear(),
+        subject: initialData.subject || '',
+        subjectHindi: initialData.subjectHindi || '',
+        category: initialData.category || '',
+        isPublished: initialData.isPublished || false,
+        timeLimit: initialData.timeLimit || 180,
+        instructions: initialData.instructions || 'Answer all questions. Each question carries marks as indicated.',
+        instructionsHindi: initialData.instructionsHindi || 'सभी प्रश्नों के उत्तर दें। प्रत्येक प्रश्न के लिए अंक निर्धारित हैं।',
+        tags: initialData.tags?.join(', ') || ''
+      });
+      setQuestions(initialData.questions || []);
+    }
+  }, [initialData]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validate file for new PYQs
-    if (!initialData && !file) {
-      setFileError('Please select a PDF file');
+    if (questions.length === 0) {
+      alert('Please add at least one question');
       return;
     }
-    
-    const formData = new FormData();
-    formData.append('title', pyqData.title);
-    formData.append('titleHindi', pyqData.titleHindi);
-    formData.append('description', pyqData.description);
-    formData.append('descriptionHindi', pyqData.descriptionHindi);
-    formData.append('exam', pyqData.exam);
-    formData.append('year', pyqData.year);
-    formData.append('subject', pyqData.subject);
-    formData.append('subjectHindi', pyqData.subjectHindi);
-    formData.append('questions', pyqData.questions || '0');
-    formData.append('category', pyqData.category);
-    formData.append('isPublished', pyqData.isPublished);
-    
-    if (file) {
-      formData.append('file', file);
-    }
+
+    const formData = {
+      ...pyqData,
+      questions: JSON.stringify(questions.map((q, index) => ({
+        ...q,
+        questionNumber: index + 1
+      })))
+    };
     
     onSave(formData);
   };
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      // Check if file is PDF
-      if (selectedFile.type !== 'application/pdf') {
-        setFileError('Please select a PDF file');
-        setFile(null);
-        return;
-      }
-      
-      // Check file size (10MB limit)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        setFileError('File size must be less than 10MB');
-        setFile(null);
-        return;
-      }
-      
-      setFile(selectedFile);
-      setFileError('');
+  const addQuestion = () => {
+    if (!currentQuestion.question.trim()) {
+      alert('Please enter a question');
+      return;
     }
+
+    const newQuestion = {
+      ...currentQuestion,
+      questionNumber: questions.length + 1,
+      tags: currentQuestion.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+    };
+
+    setQuestions([...questions, newQuestion]);
+    
+    // Reset current question
+    setCurrentQuestion({
+      questionNumber: questions.length + 2,
+      question: '',
+      questionHindi: '',
+      options: [
+        { text: '', textHindi: '', isCorrect: false },
+        { text: '', textHindi: '', isCorrect: false },
+        { text: '', textHindi: '', isCorrect: false },
+        { text: '', textHindi: '', isCorrect: false }
+      ],
+      answer: '',
+      answerHindi: '',
+      explanation: '',
+      explanationHindi: '',
+      difficulty: 'Medium',
+      marks: 1,
+      tags: '',
+      category: ''
+    });
+  };
+
+  const updateQuestion = (index, field, value) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
+    setQuestions(updatedQuestions);
+  };
+
+  const deleteQuestion = (index) => {
+    const updatedQuestions = questions.filter((_, i) => i !== index);
+    setQuestions(updatedQuestions.map((q, i) => ({ ...q, questionNumber: i + 1 })));
   };
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 20 }, (_, i) => currentYear - i);
 
+  const addOption = () => {
+    const newOptions = [...currentQuestion.options, { text: '', textHindi: '', isCorrect: false }];
+    setCurrentQuestion({ ...currentQuestion, options: newOptions });
+  };
+
+  const removeOption = (index) => {
+    if (currentQuestion.options.length <= 1) {
+      alert('At least one option is required');
+      return;
+    }
+    const newOptions = currentQuestion.options.filter((_, i) => i !== index);
+    setCurrentQuestion({ ...currentQuestion, options: newOptions });
+  };
+
+  const updateOption = (index, field, value) => {
+    const newOptions = [...currentQuestion.options];
+    newOptions[index] = { ...newOptions[index], [field]: value };
+    setCurrentQuestion({ ...currentQuestion, options: newOptions });
+  };
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+    <div className="bg-white p-6 rounded-lg shadow-md max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-900">
         {initialData ? 'Edit PYQ' : 'Add New PYQ'}
       </h2>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Bilingual Title Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title (English) *
-            </label>
-            <input
-              type="text"
-              value={pyqData.title}
-              onChange={(e) => setPyqData({ ...pyqData, title: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., UPSC Civil Services Preliminary Exam"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title (Hindi) *
-            </label>
-            <input
-              type="text"
-              value={pyqData.titleHindi}
-              onChange={(e) => setPyqData({ ...pyqData, titleHindi: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent hindi"
-              placeholder="e.g., यूपीएससी सिविल सेवा प्रारंभिक परीक्षा"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Bilingual Description Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description (English) *
-            </label>
-            <textarea
-              value={pyqData.description}
-              onChange={(e) => setPyqData({ ...pyqData, description: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32"
-              placeholder="Description of the question paper, topics covered, etc."
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description (Hindi) *
-            </label>
-            <textarea
-              value={pyqData.descriptionHindi}
-              onChange={(e) => setPyqData({ ...pyqData, descriptionHindi: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32 hindi"
-              placeholder="प्रश्न पत्र का विवरण, शामिल विषय, आदि।"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Exam, Year, and Questions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Exam Type *
-            </label>
-            <select
-              value={pyqData.exam}
-              onChange={(e) => setPyqData({ ...pyqData, exam: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
-            >
-              <option value="UPSC">UPSC</option>
-              <option value="State PCS">State PCS</option>
-              <option value="IAS">IAS</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Year *
-            </label>
-            <select
-              value={pyqData.year}
-              onChange={(e) => setPyqData({ ...pyqData, year: parseInt(e.target.value) })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
-            >
-              {years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Number of Questions
-            </label>
-            <input
-              type="number"
-              value={pyqData.questions}
-              onChange={(e) => setPyqData({ ...pyqData, questions: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., 100"
-              min="0"
-            />
-          </div>
-        </div>
-
-        {/* Bilingual Subject Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Subject (English) *
-            </label>
-            <input
-              type="text"
-              value={pyqData.subject}
-              onChange={(e) => setPyqData({ ...pyqData, subject: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., General Studies, Mathematics, etc."
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Subject (Hindi) *
-            </label>
-            <input
-              type="text"
-              value={pyqData.subjectHindi}
-              onChange={(e) => setPyqData({ ...pyqData, subjectHindi: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent hindi"
-              placeholder="e.g., सामान्य अध्ययन, गणित, आदि"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Category and File Upload */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category *
-            </label>
-            <select
-              value={pyqData.category}
-              onChange={(e) => setPyqData({ ...pyqData, category: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select Category</option>
-              <option value="Preliminary">Preliminary</option>
-              <option value="Mains">Mains</option>
-              <option value="Optional">Optional</option>
-              <option value="General Studies">General Studies</option>
-              <option value="Aptitude">Aptitude</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              PDF File {!initialData && '*'}
-            </label>
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              onChange={handleFileChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-            />
-            {fileError && (
-              <p className="mt-2 text-sm text-red-600">{fileError}</p>
-            )}
-            {file && (
-              <p className="mt-2 text-sm text-green-600">
-                ✅ Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-              </p>
-            )}
-            {initialData?.file && !file && (
-              <p className="mt-2 text-sm text-gray-600">
-                📄 Current file: {initialData.file.split('/').pop()}
-              </p>
-            )}
-            <p className="mt-1 text-xs text-gray-500">
-              Maximum file size: 10MB • Only PDF files allowed
-            </p>
-          </div>
-        </div>
-
-        {/* Publish Option */}
-        <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-          <input
-            id="publish"
-            type="checkbox"
-            checked={pyqData.isPublished}
-            onChange={(e) => setPyqData({ ...pyqData, isPublished: e.target.checked })}
-            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-          />
-          <label htmlFor="publish" className="ml-3 block text-sm font-medium text-gray-900">
-            Publish immediately (make visible to users)
-          </label>
-        </div>
-
-        {/* Form Validation Summary */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-800 mb-2">Required Fields:</h4>
-          <ul className="text-xs text-blue-700 space-y-1">
-            <li>• Title (English & Hindi)</li>
-            <li>• Description (English & Hindi)</li>
-            <li>• Exam Type, Year, and Category</li>
-            <li>• Subject (English & Hindi)</li>
-            <li>• PDF File (for new PYQs)</li>
-          </ul>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+      {/* Tabs */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
           <button
             type="button"
-            onClick={onCancel}
-            className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 transition-colors duration-200"
+            onClick={() => setActiveTab('basic')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'basic'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           >
-            Cancel
+            Basic Info
           </button>
           <button
-            type="submit"
-            className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 flex items-center"
+            type="button"
+            onClick={() => setActiveTab('questions')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'questions'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           >
-            {initialData ? 'Update PYQ' : 'Add PYQ'}
+            Questions ({questions.length})
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('settings')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'settings'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Settings
+          </button>
+        </nav>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        {/* Basic Info Tab */}
+        {activeTab === 'basic' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title (English) *
+                </label>
+                <input
+                  type="text"
+                  value={pyqData.title}
+                  onChange={(e) => setPyqData({ ...pyqData, title: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="e.g., UPSC Civil Services Preliminary Exam 2023"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title (Hindi) *
+                </label>
+                <input
+                  type="text"
+                  value={pyqData.titleHindi}
+                  onChange={(e) => setPyqData({ ...pyqData, titleHindi: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent hindi"
+                  placeholder="e.g., यूपीएससी सिविल सेवा प्रारंभिक परीक्षा 2023"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description (English)
+                </label>
+                <textarea
+                  value={pyqData.description}
+                  onChange={(e) => setPyqData({ ...pyqData, description: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32"
+                  placeholder="Description of the question paper"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description (Hindi)
+                </label>
+                <textarea
+                  value={pyqData.descriptionHindi}
+                  onChange={(e) => setPyqData({ ...pyqData, descriptionHindi: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32 hindi"
+                  placeholder="प्रश्न पत्र का विवरण"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Exam Type *
+                </label>
+                <select
+                  value={pyqData.exam}
+                  onChange={(e) => setPyqData({ ...pyqData, exam: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                >
+                  <option value="UPSC">UPSC</option>
+                  <option value="State PCS">State PCS</option>
+                  <option value="IAS">IAS</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Year *
+                </label>
+                <select
+                  value={pyqData.year}
+                  onChange={(e) => setPyqData({ ...pyqData, year: parseInt(e.target.value) })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                >
+                  {years.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subject (English) *
+                </label>
+                <input
+                  type="text"
+                  value={pyqData.subject}
+                  onChange={(e) => setPyqData({ ...pyqData, subject: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="e.g., General Studies"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subject (Hindi) *
+                </label>
+                <input
+                  type="text"
+                  value={pyqData.subjectHindi}
+                  onChange={(e) => setPyqData({ ...pyqData, subjectHindi: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent hindi"
+                  placeholder="e.g., सामान्य अध्ययन"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Questions Tab */}
+        {activeTab === 'questions' && (
+          <div className="space-y-6">
+            {/* Add Question Form */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Add New Question</h3>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Question (English) *
+                </label>
+                <textarea
+                  value={currentQuestion.question}
+                  onChange={(e) => setCurrentQuestion({ ...currentQuestion, question: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32"
+                  placeholder="Enter the question text..."
+                  required
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Question (Hindi)
+                </label>
+                <textarea
+                  value={currentQuestion.questionHindi}
+                  onChange={(e) => setCurrentQuestion({ ...currentQuestion, questionHindi: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32 hindi"
+                  placeholder="प्रश्न दर्ज करें..."
+                />
+              </div>
+
+              {/* Options */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Options (Mark correct answer)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addOption}
+                    className="text-sm text-green-600 hover:text-green-800"
+                  >
+                    + Add Option
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option, index) => (
+                    <div key={index} className="flex items-start space-x-2 p-3 border border-gray-200 rounded-lg">
+                      <input
+                        type="radio"
+                        name="correctOption"
+                        checked={option.isCorrect}
+                        onChange={() => {
+                          const newOptions = currentQuestion.options.map((opt, i) => ({
+                            ...opt,
+                            isCorrect: i === index
+                          }));
+                          setCurrentQuestion({ ...currentQuestion, options: newOptions });
+                        }}
+                        className="mt-2"
+                      />
+                      <div className="flex-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                          <input
+                            type="text"
+                            value={option.text}
+                            onChange={(e) => updateOption(index, 'text', e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded"
+                            placeholder={`Option ${String.fromCharCode(65 + index)} (English)`}
+                          />
+                          <input
+                            type="text"
+                            value={option.textHindi}
+                            onChange={(e) => updateOption(index, 'textHindi', e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded hindi"
+                            placeholder={`Option ${String.fromCharCode(65 + index)} (Hindi)`}
+                          />
+                        </div>
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => removeOption(index)}
+                            className="text-xs text-red-600 hover:text-red-800"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Difficulty
+                  </label>
+                  <select
+                    value={currentQuestion.difficulty}
+                    onChange={(e) => setCurrentQuestion({ ...currentQuestion, difficulty: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  >
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Marks
+                  </label>
+                  <input
+                    type="number"
+                    value={currentQuestion.marks}
+                    onChange={(e) => setCurrentQuestion({ ...currentQuestion, marks: parseInt(e.target.value) || 1 })}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tags (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={currentQuestion.tags}
+                    onChange={(e) => setCurrentQuestion({ ...currentQuestion, tags: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    placeholder="e.g., polity, constitution, history"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Explanation (English)
+                  </label>
+                  <textarea
+                    value={currentQuestion.explanation}
+                    onChange={(e) => setCurrentQuestion({ ...currentQuestion, explanation: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded h-24"
+                    placeholder="Detailed explanation of the answer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Explanation (Hindi)
+                  </label>
+                  <textarea
+                    value={currentQuestion.explanationHindi}
+                    onChange={(e) => setCurrentQuestion({ ...currentQuestion, explanationHindi: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded h-24 hindi"
+                    placeholder="उत्तर का विस्तृत स्पष्टीकरण"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={addQuestion}
+                className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700"
+              >
+                Add Question
+              </button>
+            </div>
+
+            {/* Question List */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4">Questions ({questions.length})</h3>
+              {questions.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No questions added yet</p>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {questions.map((question, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            <span className="font-medium mr-2">Q{question.questionNumber}:</span>
+                            <div className="flex-1">
+                              <p className="font-medium">{question.question}</p>
+                              {question.questionHindi && (
+                                <p className="text-gray-600 hindi mt-1">{question.questionHindi}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2 ml-4">
+                          <button
+                            type="button"
+                            onClick={() => updateQuestion(index, 'difficulty', 
+                              question.difficulty === 'Easy' ? 'Medium' : 
+                              question.difficulty === 'Medium' ? 'Hard' : 'Easy'
+                            )}
+                            className={`px-2 py-1 text-xs rounded ${
+                              question.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
+                              question.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {question.difficulty}
+                          </button>
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                            {question.marks} mark{question.marks !== 1 ? 's' : ''}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => deleteQuestion(index)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 ml-6">
+                        {question.options.map((opt, optIndex) => (
+                          <div key={optIndex} className={`flex items-center ${opt.isCorrect ? 'font-semibold text-green-700' : ''}`}>
+                            <span className="mr-2">{String.fromCharCode(65 + optIndex)}.</span>
+                            <span>{opt.text || opt.textHindi || '(Empty)'}</span>
+                            {opt.isCorrect && <span className="ml-2">✓</span>}
+                          </div>
+                        ))}
+                      </div>
+                      {question.explanation && (
+                        <div className="mt-2 text-sm text-gray-500 ml-6">
+                          <span className="font-medium">Explanation:</span> {question.explanation}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category *
+                </label>
+                <select
+                  value={pyqData.category}
+                  onChange={(e) => setPyqData({ ...pyqData, category: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  <option value="Preliminary">Preliminary</option>
+                  <option value="Mains">Mains</option>
+                  <option value="Optional">Optional</option>
+                  <option value="General Studies">General Studies</option>
+                  <option value="Aptitude">Aptitude</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Time Limit (minutes)
+                </label>
+                <input
+                  type="number"
+                  value={pyqData.timeLimit}
+                  onChange={(e) => setPyqData({ ...pyqData, timeLimit: parseInt(e.target.value) })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  min="1"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Instructions (English)
+                </label>
+                <textarea
+                  value={pyqData.instructions}
+                  onChange={(e) => setPyqData({ ...pyqData, instructions: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32"
+                  placeholder="Exam instructions"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Instructions (Hindi)
+                </label>
+                <textarea
+                  value={pyqData.instructionsHindi}
+                  onChange={(e) => setPyqData({ ...pyqData, instructionsHindi: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32 hindi"
+                  placeholder="परीक्षा निर्देश"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tags (comma separated)
+              </label>
+              <input
+                type="text"
+                value={pyqData.tags}
+                onChange={(e) => setPyqData({ ...pyqData, tags: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="e.g., upsc, prelims, general-studies, polity"
+              />
+            </div>
+
+            <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+              <input
+                id="publish"
+                type="checkbox"
+                checked={pyqData.isPublished}
+                onChange={(e) => setPyqData({ ...pyqData, isPublished: e.target.checked })}
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              />
+              <label htmlFor="publish" className="ml-3 block text-sm font-medium text-gray-900">
+                Publish immediately (make visible to users)
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation and Submit */}
+        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+          <div className="flex space-x-4">
+            {activeTab !== 'basic' && (
+              <button
+                type="button"
+                onClick={() => setActiveTab(activeTab === 'questions' ? 'basic' : 'questions')}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
+              >
+                Back
+              </button>
+            )}
+          </div>
+          
+          <div className="flex space-x-4">
+            {activeTab !== 'settings' && (
+              <button
+                type="button"
+                onClick={() => setActiveTab(activeTab === 'basic' ? 'questions' : 'settings')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+              >
+                Next
+              </button>
+            )}
+            {activeTab === 'settings' && (
+              <>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
+                >
+                  {initialData ? 'Update PYQ' : 'Create PYQ'}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </form>
     </div>
@@ -316,4 +696,3 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
 };
 
 export default AdminPyqEditor;
-
