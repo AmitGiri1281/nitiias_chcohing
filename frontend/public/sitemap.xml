@@ -3,53 +3,139 @@
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
-  <!-- Home -->
+  <!-- ================= MAIN PAGES ================= -->
+  
+  <!-- Home - Default (Hindi) -->
   <url>
     <loc>https://www.nitiias.org/</loc>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.nitiias.org/" />
     <lastmod>2025-10-31</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- About -->
+  <!-- Home - English -->
+  <url>
+    <loc>https://www.nitiias.org/en</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.nitiias.org/" />
+    <lastmod>2025-10-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- About - Hindi -->
   <url>
     <loc>https://www.nitiias.org/about</loc>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/about" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/about" />
     <lastmod>2025-10-31</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Courses -->
+  <!-- About - English -->
+  <url>
+    <loc>https://www.nitiias.org/en/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/about" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/about" />
+    <lastmod>2025-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Courses - Hindi -->
   <url>
     <loc>https://www.nitiias.org/courses</loc>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/courses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/courses" />
     <lastmod>2025-10-31</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
-  <!-- PYQs -->
+  <!-- Courses - English -->
+  <url>
+    <loc>https://www.nitiias.org/en/courses</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/courses" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/courses" />
+    <lastmod>2025-10-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- PYQs - Hindi -->
   <url>
     <loc>https://www.nitiias.org/pyqs</loc>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/pyqs" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/pyqs" />
     <lastmod>2025-10-31</lastmod>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Study Materials -->
-  <url>
-    <loc>https://www.nitiias.org/study-materials</loc>
-    <lastmod>2025-10-31</lastmod>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Blog -->
-  <url>
-    <loc>https://www.nitiias.org/blog</loc>
-    <lastmod>2025-10-31</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
-  <!-- Contact -->
+  <!-- PYQs - English -->
+  <url>
+    <loc>https://www.nitiias.org/en/pyqs</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/pyqs" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/pyqs" />
+    <lastmod>2025-10-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Blog - Hindi -->
+  <url>
+    <loc>https://www.nitiias.org/blog</loc>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/blog" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/blog" />
+    <lastmod>2025-10-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Blog - English -->
+  <url>
+    <loc>https://www.nitiias.org/en/blog</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/blog" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/blog" />
+    <lastmod>2025-10-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Contact - Hindi -->
   <url>
     <loc>https://www.nitiias.org/contact</loc>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/contact" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/contact" />
     <lastmod>2025-10-31</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+
+  <!-- Contact - English -->
+  <url>
+    <loc>https://www.nitiias.org/en/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.nitiias.org/en/contact" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.nitiias.org/contact" />
+    <lastmod>2025-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ================= DYNAMIC CONTENT ================= -->
+  
+  <!-- Individual Blog Posts -->
+  <!-- Add these dynamically from your backend -->
+  
+  <!-- Individual PYQ Tests -->
+  <!-- Add these dynamically from your backend -->
+  
+  <!-- Individual Courses -->
+  <!-- Add these dynamically from your backend -->
 
 </urlset>

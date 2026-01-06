@@ -44,13 +44,13 @@ const AdminDashboard = () => {
         const response = await api.get('/courses');
         setCourses(response.data || []);
       } else if (activeTab === 'pyqs') {
-        // Use the new admin endpoint
+        // नया एडमिन एंडपॉइंट उपयोग करें
         try {
           const response = await api.get('/pyqs/admin/list');
           const pyqsData = response.data || [];
           setPyqs(pyqsData);
           
-          // Calculate statistics
+          // आँकड़े गणना
           const stats = {
             total: pyqsData.length,
             published: pyqsData.filter(p => p.isPublished).length,
@@ -59,19 +59,19 @@ const AdminDashboard = () => {
           };
           setPyqStats(stats);
         } catch (error) {
-          console.error('Error fetching PYQs:', error);
+          console.error('PYQs प्राप्त करने में त्रुटि:', error);
           setPyqs([]);
           setPyqStats({ total: 0, published: 0, totalQuestions: 0, totalMarks: 0 });
         }
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('डेटा प्राप्त करने में त्रुटि:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  /** ---------------- BLOG HANDLERS ---------------- */
+  /** ---------------- ब्लॉग हैंडलर्स ---------------- */
   const handleCreateBlog = () => {
     setEditingBlog(null);
     setShowBlogEditor(true);
@@ -93,22 +93,22 @@ const AdminDashboard = () => {
       setEditingBlog(null);
       fetchData();
     } catch (error) {
-      console.error('Error saving blog:', error);
+      console.error('ब्लॉग सहेजने में त्रुटि:', error);
     }
   };
 
   const handleDeleteBlog = async (id) => {
-    if (window.confirm('Are you sure you want to delete this blog?')) {
+    if (window.confirm('क्या आप वाकई इस ब्लॉग को हटाना चाहते हैं?')) {
       try {
         await api.delete(`/blogs/${id}`);
         fetchData();
       } catch (error) {
-        console.error('Error deleting blog:', error);
+        console.error('ब्लॉग हटाने में त्रुटि:', error);
       }
     }
   };
 
-  /** ---------------- COURSE HANDLERS ---------------- */
+  /** ---------------- कोर्स हैंडलर्स ---------------- */
   const handleCreateCourse = () => {
     setEditingCourse(null);
     setShowCourseEditor(true);
@@ -130,22 +130,22 @@ const AdminDashboard = () => {
       setEditingCourse(null);
       fetchData();
     } catch (error) {
-      console.error('Error saving course:', error);
+      console.error('कोर्स सहेजने में त्रुटि:', error);
     }
   };
 
   const handleDeleteCourse = async (id) => {
-    if (window.confirm('Are you sure you want to delete this course?')) {
+    if (window.confirm('क्या आप वाकई इस कोर्स को हटाना चाहते हैं?')) {
       try {
         await api.delete(`/courses/${id}`);
         fetchData();
       } catch (error) {
-        console.error('Error deleting course:', error);
+        console.error('कोर्स हटाने में त्रुटि:', error);
       }
     }
   };
 
-  /** ---------------- PYQ HANDLERS ---------------- */
+  /** ---------------- PYQ हैंडलर्स ---------------- */
   const handleCreatePyq = () => {
     setEditingPyq(null);
     setShowPyqEditor(true);
@@ -158,7 +158,7 @@ const AdminDashboard = () => {
 
   const handleSavePyq = async (formData) => {
     try {
-      // Convert form data to FormData object
+      // फॉर्म डेटा को FormData ऑब्जेक्ट में बदलें
       const formDataObj = new FormData();
       Object.keys(formData).forEach(key => {
         if (key === 'questions') {
@@ -177,40 +177,40 @@ const AdminDashboard = () => {
       setEditingPyq(null);
       fetchData();
     } catch (error) {
-      console.error('Error saving PYQ:', error.response?.data || error.message);
-      alert(`Error saving PYQ: ${error.response?.data?.message || error.message}`);
+      console.error('PYQ सहेजने में त्रुटि:', error.response?.data || error.message);
+      alert(`PYQ सहेजने में त्रुटि: ${error.response?.data?.message || error.message}`);
     }
   };
 
   const handleDeletePyq = async (id) => {
-    if (window.confirm('Are you sure you want to delete this PYQ?')) {
+    if (window.confirm('क्या आप वाकई इस PYQ को हटाना चाहते हैं?')) {
       try {
         await api.delete(`/pyqs/admin/${id}`);
         fetchData();
       } catch (error) {
-        console.error('Error deleting PYQ:', error);
+        console.error('PYQ हटाने में त्रुटि:', error);
       }
     }
   };
 
   const handleViewPyq = (pyq) => {
-    // Navigate to PYQ test page
+    // PYQ टेस्ट पेज पर नेविगेट करें
     window.open(`/pyq/${pyq._id}`, '_blank');
   };
 
-  /** ---------------- ACCESS CHECK ---------------- */
+  /** ---------------- एक्सेस चेक ---------------- */
   if (user?.role !== 'admin') {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-          <p className="text-gray-600">You need to be an admin to access this page.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">अभिगम निषेध</h2>
+          <p className="text-gray-600">इस पेज तक पहुँचने के लिए आपको एडमिन होना चाहिए।</p>
         </div>
       </div>
     );
   }
 
-  /** ---------------- EDITOR MODALS ---------------- */
+  /** ---------------- एडिटर मोडल ---------------- */
   if (showBlogEditor) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -256,12 +256,12 @@ const AdminDashboard = () => {
     );
   }
 
-  /** ---------------- MAIN RENDER ---------------- */
+  /** ---------------- मुख्य रेंडर ---------------- */
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('dashboard')}</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('dashboard') || 'डैशबोर्ड'}</h1>
       
-      {/* Tabs */}
+      {/* टैब्स */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
           <button
@@ -272,7 +272,7 @@ const AdminDashboard = () => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            {t('blogManagement')}
+            {t('blogManagement') || 'ब्लॉग प्रबंधन'}
           </button>
           <button
             onClick={() => setActiveTab('courses')}
@@ -282,7 +282,7 @@ const AdminDashboard = () => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            {t('courseManagement')}
+            {t('courseManagement') || 'कोर्स प्रबंधन'}
           </button>
           <button
             onClick={() => setActiveTab('pyqs')}
@@ -293,28 +293,28 @@ const AdminDashboard = () => {
             }`}
           >
             <FileText size={16} className="mr-2" />
-            PYQ Management
+            {t('pyqManagement') || 'PYQ प्रबंधन'}
           </button>
         </nav>
       </div>
 
-      {/* Content */}
+      {/* सामग्री */}
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t('loading')}</p>
+          <p className="mt-4 text-gray-600">{t('loading') || 'लोड हो रहा है...'}</p>
         </div>
       ) : activeTab === 'blogs' ? (
-        /* Blog Management Section */
+        /* ब्लॉग प्रबंधन अनुभाग */
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">{t('blogManagement')}</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('blogManagement') || 'ब्लॉग प्रबंधन'}</h2>
             <button
               onClick={handleCreateBlog}
               className="bg-primary-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-primary-700"
             >
               <Plus size={20} className="mr-2" />
-              {t('createNew')}
+              {t('createNew') || 'नया बनाएं'}
             </button>
           </div>
 
@@ -338,11 +338,11 @@ const AdminDashboard = () => {
                             <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               blog.isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {blog.isPublished ? t('published') : t('draft')}
+                              {blog.isPublished ? (t('published') || 'प्रकाशित') : (t('draft') || 'ड्राफ्ट')}
                             </span>
                           </div>
                           <p className="text-sm text-gray-500">
-                            {new Date(blog.createdAt).toLocaleDateString()} • {blog.views} {t('views')}
+                            {new Date(blog.createdAt).toLocaleDateString('hi-IN')} • {blog.views} {t('views') || 'दृश्य'}
                           </p>
                         </div>
                       </div>
@@ -350,21 +350,21 @@ const AdminDashboard = () => {
                         <button
                           onClick={() => window.open(`/blog/${blog._id}`, '_blank')}
                           className="text-gray-400 hover:text-gray-500"
-                          title={t('view')}
+                          title={t('view') || 'देखें'}
                         >
                           <Eye size={20} />
                         </button>
                         <button
                           onClick={() => handleEditBlog(blog)}
                           className="text-blue-400 hover:text-blue-500"
-                          title={t('edit')}
+                          title={t('edit') || 'संपादित करें'}
                         >
                           <Edit size={20} />
                         </button>
                         <button
                           onClick={() => handleDeleteBlog(blog._id)}
                           className="text-red-400 hover:text-red-500"
-                          title={t('delete')}
+                          title={t('delete') || 'हटाएं'}
                         >
                           <Trash2 size={20} />
                         </button>
@@ -376,22 +376,22 @@ const AdminDashboard = () => {
             </ul>
             {blogs.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500">{t('noBlogs')}</p>
+                <p className="text-gray-500">{t('noBlogs') || 'कोई ब्लॉग नहीं मिला'}</p>
               </div>
             )}
           </div>
         </div>
       ) : activeTab === 'courses' ? (
-        /* Course Management Section */
+        /* कोर्स प्रबंधन अनुभाग */
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Course Management</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('courseManagement') || 'कोर्स प्रबंधन'}</h2>
             <button
               onClick={handleCreateCourse}
               className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-700"
             >
               <Plus size={20} className="mr-2" />
-              Create New Course
+              {t('createNewCourse') || 'नया कोर्स बनाएं'}
             </button>
           </div>
 
@@ -415,7 +415,7 @@ const AdminDashboard = () => {
                             <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               course.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                             }`}>
-                              {course.isActive ? 'Active' : 'Inactive'}
+                              {course.isActive ? (t('active') || 'सक्रिय') : (t('inactive') || 'निष्क्रिय')}
                             </span>
                           </div>
                           <p className="text-sm text-gray-500">
@@ -427,14 +427,14 @@ const AdminDashboard = () => {
                         <button
                           onClick={() => handleEditCourse(course)}
                           className="text-blue-400 hover:text-blue-500"
-                          title="Edit"
+                          title={t('edit') || 'संपादित करें'}
                         >
                           <Edit size={20} />
                         </button>
                         <button
                           onClick={() => handleDeleteCourse(course._id)}
                           className="text-red-400 hover:text-red-500"
-                          title="Delete"
+                          title={t('delete') || 'हटाएं'}
                         >
                           <Trash2 size={20} />
                         </button>
@@ -446,15 +446,15 @@ const AdminDashboard = () => {
             </ul>
             {courses.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500">No courses found</p>
+                <p className="text-gray-500">{t('noCourses') || 'कोई कोर्स नहीं मिला'}</p>
               </div>
             )}
           </div>
         </div>
       ) : (
-        /* PYQ Management Section */
+        /* PYQ प्रबंधन अनुभाग */
         <div>
-          {/* PYQ Statistics */}
+          {/* PYQ आँकड़े */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg shadow">
               <div className="flex items-center">
@@ -462,7 +462,7 @@ const AdminDashboard = () => {
                   <FileText className="text-green-600" size={24} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total PYQs</p>
+                  <p className="text-sm text-gray-500">कुल PYQs</p>
                   <p className="text-2xl font-bold">{pyqStats.total}</p>
                 </div>
               </div>
@@ -473,7 +473,7 @@ const AdminDashboard = () => {
                   <Target className="text-blue-600" size={24} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Published</p>
+                  <p className="text-sm text-gray-500">प्रकाशित</p>
                   <p className="text-2xl font-bold">{pyqStats.published}</p>
                 </div>
               </div>
@@ -484,7 +484,7 @@ const AdminDashboard = () => {
                   <Users className="text-purple-600" size={24} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Questions</p>
+                  <p className="text-sm text-gray-500">कुल प्रश्न</p>
                   <p className="text-2xl font-bold">{pyqStats.totalQuestions}</p>
                 </div>
               </div>
@@ -495,7 +495,7 @@ const AdminDashboard = () => {
                   <Clock className="text-yellow-600" size={24} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Marks</p>
+                  <p className="text-sm text-gray-500">कुल अंक</p>
                   <p className="text-2xl font-bold">{pyqStats.totalMarks}</p>
                 </div>
               </div>
@@ -503,13 +503,13 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">PYQ Management</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('pyqManagement') || 'PYQ प्रबंधन'}</h2>
             <button
               onClick={handleCreatePyq}
               className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-green-700"
             >
               <Plus size={20} className="mr-2" />
-              Add New PYQ
+              {t('addNewPYQ') || 'नया PYQ जोड़ें'}
             </button>
           </div>
 
@@ -529,24 +529,24 @@ const AdminDashboard = () => {
                             <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               pyq.isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {pyq.isPublished ? 'Published' : 'Draft'}
+                              {pyq.isPublished ? (t('published') || 'प्रकाशित') : (t('draft') || 'ड्राफ्ट')}
                             </span>
                           </div>
                           <p className="text-sm text-gray-500">
-                            {pyq.exam} • {pyq.year} • {pyq.subject} • {pyq.totalQuestions || 0} questions
+                            {pyq.exam} • {pyq.year} • {pyq.subject} • {pyq.totalQuestions || 0} प्रश्न
                           </p>
                           <div className="flex items-center space-x-2 mt-1">
                             <span className="text-xs text-gray-400">
                               <Users size={12} className="inline mr-1" />
-                              {pyq.attempts || 0} attempts
+                              {pyq.attempts || 0} प्रयास
                             </span>
                             <span className="text-xs text-gray-400">
                               <Eye size={12} className="inline mr-1" />
-                              {pyq.views || 0} views
+                              {pyq.views || 0} दृश्य
                             </span>
                             <span className="text-xs text-gray-400">
                               <Target size={12} className="inline mr-1" />
-                              Avg: {(pyq.averageScore || 0).toFixed(1)}%
+                              औसत: {(pyq.averageScore || 0).toFixed(1)}%
                             </span>
                           </div>
                         </div>
@@ -555,21 +555,21 @@ const AdminDashboard = () => {
                         <button
                           onClick={() => handleViewPyq(pyq)}
                           className="text-gray-400 hover:text-gray-500"
-                          title="View Test"
+                          title={t('viewTest') || 'टेस्ट देखें'}
                         >
                           <Eye size={20} />
                         </button>
                         <button
                           onClick={() => handleEditPyq(pyq)}
                           className="text-blue-400 hover:text-blue-500"
-                          title="Edit"
+                          title={t('edit') || 'संपादित करें'}
                         >
                           <Edit size={20} />
                         </button>
                         <button
                           onClick={() => handleDeletePyq(pyq._id)}
                           className="text-red-400 hover:text-red-500"
-                          title="Delete"
+                          title={t('delete') || 'हटाएं'}
                         >
                           <Trash2 size={20} />
                         </button>
@@ -582,8 +582,8 @@ const AdminDashboard = () => {
             {pyqs.length === 0 && (
               <div className="text-center py-12">
                 <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-500">No PYQs found</p>
-                <p className="text-sm text-gray-400 mt-2">Add your first PYQ using the "Add New PYQ" button</p>
+                <p className="text-gray-500">{t('noPYQs') || 'कोई PYQ नहीं मिला'}</p>
+                <p className="text-sm text-gray-400 mt-2">"नया PYQ जोड़ें" बटन का उपयोग करके अपना पहला PYQ जोड़ें</p>
               </div>
             )}
           </div>

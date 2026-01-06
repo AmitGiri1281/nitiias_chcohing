@@ -1,3 +1,5 @@
+
+// now no need becacuse it is siffited in hindi website
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 

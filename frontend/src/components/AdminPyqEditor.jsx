@@ -37,7 +37,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
     category: '',
     isPublished: false,
     timeLimit: 180,
-    instructions: 'Answer all questions. Each question carries marks as indicated.',
+    instructions: 'सभी प्रश्नों के उत्तर दें। प्रत्येक प्रश्न के लिए अंक निर्धारित हैं।',
     instructionsHindi: 'सभी प्रश्नों के उत्तर दें। प्रत्येक प्रश्न के लिए अंक निर्धारित हैं।',
     tags: ''
   });
@@ -56,7 +56,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
         category: initialData.category || '',
         isPublished: initialData.isPublished || false,
         timeLimit: initialData.timeLimit || 180,
-        instructions: initialData.instructions || 'Answer all questions. Each question carries marks as indicated.',
+        instructions: initialData.instructions || 'सभी प्रश्नों के उत्तर दें। प्रत्येक प्रश्न के लिए अंक निर्धारित हैं।',
         instructionsHindi: initialData.instructionsHindi || 'सभी प्रश्नों के उत्तर दें। प्रत्येक प्रश्न के लिए अंक निर्धारित हैं।',
         tags: initialData.tags?.join(', ') || ''
       });
@@ -68,7 +68,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
     e.preventDefault();
     
     if (questions.length === 0) {
-      alert('Please add at least one question');
+      alert('कृपया कम से कम एक प्रश्न जोड़ें');
       return;
     }
 
@@ -85,7 +85,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
 
   const addQuestion = () => {
     if (!currentQuestion.question.trim()) {
-      alert('Please enter a question');
+      alert('कृपया एक प्रश्न दर्ज करें');
       return;
     }
 
@@ -140,7 +140,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
 
   const removeOption = (index) => {
     if (currentQuestion.options.length <= 1) {
-      alert('At least one option is required');
+      alert('कम से कम एक विकल्प आवश्यक है');
       return;
     }
     const newOptions = currentQuestion.options.filter((_, i) => i !== index);
@@ -156,7 +156,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-900">
-        {initialData ? 'Edit PYQ' : 'Add New PYQ'}
+        {initialData ? 'PYQ संपादित करें' : 'नया PYQ जोड़ें'}
       </h2>
       
       {/* Tabs */}
@@ -171,7 +171,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Basic Info
+            मूल जानकारी
           </button>
           <button
             type="button"
@@ -182,7 +182,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Questions ({questions.length})
+            प्रश्न ({questions.length})
           </button>
           <button
             type="button"
@@ -193,7 +193,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Settings
+            सेटिंग्स
           </button>
         </nav>
       </div>
@@ -205,27 +205,27 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title (English) *
+                  शीर्षक (अंग्रेजी) *
                 </label>
                 <input
                   type="text"
                   value={pyqData.title}
                   onChange={(e) => setPyqData({ ...pyqData, title: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="e.g., UPSC Civil Services Preliminary Exam 2023"
+                  placeholder="जैसे, UPSC Civil Services Preliminary Exam 2023"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title (Hindi) *
+                  शीर्षक (हिंदी) *
                 </label>
                 <input
                   type="text"
                   value={pyqData.titleHindi}
                   onChange={(e) => setPyqData({ ...pyqData, titleHindi: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent hindi"
-                  placeholder="e.g., यूपीएससी सिविल सेवा प्रारंभिक परीक्षा 2023"
+                  placeholder="जैसे, यूपीएससी सिविल सेवा प्रारंभिक परीक्षा 2023"
                   required
                 />
               </div>
@@ -234,18 +234,18 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description (English)
+                  विवरण (अंग्रेजी)
                 </label>
                 <textarea
                   value={pyqData.description}
                   onChange={(e) => setPyqData({ ...pyqData, description: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32"
-                  placeholder="Description of the question paper"
+                  placeholder="प्रश्न पत्र का विवरण"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description (Hindi)
+                  विवरण (हिंदी)
                 </label>
                 <textarea
                   value={pyqData.descriptionHindi}
@@ -259,7 +259,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Exam Type *
+                  परीक्षा प्रकार *
                 </label>
                 <select
                   value={pyqData.exam}
@@ -268,14 +268,14 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                   required
                 >
                   <option value="UPSC">UPSC</option>
-                  <option value="State PCS">State PCS</option>
+                  <option value="State PCS">राज्य PCS</option>
                   <option value="IAS">IAS</option>
-                  <option value="Other">Other</option>
+                  <option value="Other">अन्य</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Year *
+                  वर्ष *
                 </label>
                 <select
                   value={pyqData.year}
@@ -290,27 +290,27 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject (English) *
+                  विषय (अंग्रेजी) *
                 </label>
                 <input
                   type="text"
                   value={pyqData.subject}
                   onChange={(e) => setPyqData({ ...pyqData, subject: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="e.g., General Studies"
+                  placeholder="जैसे, General Studies"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject (Hindi) *
+                  विषय (हिंदी) *
                 </label>
                 <input
                   type="text"
                   value={pyqData.subjectHindi}
                   onChange={(e) => setPyqData({ ...pyqData, subjectHindi: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent hindi"
-                  placeholder="e.g., सामान्य अध्ययन"
+                  placeholder="जैसे, सामान्य अध्ययन"
                   required
                 />
               </div>
@@ -323,24 +323,24 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
           <div className="space-y-6">
             {/* Add Question Form */}
             <div className="bg-gray-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">Add New Question</h3>
+              <h3 className="text-lg font-semibold mb-4">नया प्रश्न जोड़ें</h3>
               
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Question (English) *
+                  प्रश्न (अंग्रेजी) *
                 </label>
                 <textarea
                   value={currentQuestion.question}
                   onChange={(e) => setCurrentQuestion({ ...currentQuestion, question: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32"
-                  placeholder="Enter the question text..."
+                  placeholder="प्रश्न टेक्स्ट दर्ज करें..."
                   required
                 />
               </div>
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Question (Hindi)
+                  प्रश्न (हिंदी)
                 </label>
                 <textarea
                   value={currentQuestion.questionHindi}
@@ -354,14 +354,14 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Options (Mark correct answer)
+                    विकल्प (सही उत्तर चिह्नित करें)
                   </label>
                   <button
                     type="button"
                     onClick={addOption}
                     className="text-sm text-green-600 hover:text-green-800"
                   >
-                    + Add Option
+                    + विकल्प जोड़ें
                   </button>
                 </div>
                 <div className="space-y-3">
@@ -387,14 +387,14 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                             value={option.text}
                             onChange={(e) => updateOption(index, 'text', e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded"
-                            placeholder={`Option ${String.fromCharCode(65 + index)} (English)`}
+                            placeholder={`विकल्प ${String.fromCharCode(65 + index)} (अंग्रेजी)`}
                           />
                           <input
                             type="text"
                             value={option.textHindi}
                             onChange={(e) => updateOption(index, 'textHindi', e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded hindi"
-                            placeholder={`Option ${String.fromCharCode(65 + index)} (Hindi)`}
+                            placeholder={`विकल्प ${String.fromCharCode(65 + index)} (हिंदी)`}
                           />
                         </div>
                         <div className="flex justify-end">
@@ -403,7 +403,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                             onClick={() => removeOption(index)}
                             className="text-xs text-red-600 hover:text-red-800"
                           >
-                            Remove
+                            हटाएं
                           </button>
                         </div>
                       </div>
@@ -415,21 +415,21 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Difficulty
+                    कठिनाई स्तर
                   </label>
                   <select
                     value={currentQuestion.difficulty}
                     onChange={(e) => setCurrentQuestion({ ...currentQuestion, difficulty: e.target.value })}
                     className="w-full p-2 border border-gray-300 rounded"
                   >
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
+                    <option value="Easy">आसान</option>
+                    <option value="Medium">मध्यम</option>
+                    <option value="Hard">कठिन</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Marks
+                    अंक
                   </label>
                   <input
                     type="number"
@@ -441,14 +441,14 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tags (comma separated)
+                    टैग्स (कॉमा से अलग)
                   </label>
                   <input
                     type="text"
                     value={currentQuestion.tags}
                     onChange={(e) => setCurrentQuestion({ ...currentQuestion, tags: e.target.value })}
                     className="w-full p-2 border border-gray-300 rounded"
-                    placeholder="e.g., polity, constitution, history"
+                    placeholder="जैसे, polity, constitution, history"
                   />
                 </div>
               </div>
@@ -456,18 +456,18 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Explanation (English)
+                    स्पष्टीकरण (अंग्रेजी)
                   </label>
                   <textarea
                     value={currentQuestion.explanation}
                     onChange={(e) => setCurrentQuestion({ ...currentQuestion, explanation: e.target.value })}
                     className="w-full p-2 border border-gray-300 rounded h-24"
-                    placeholder="Detailed explanation of the answer"
+                    placeholder="उत्तर का विस्तृत स्पष्टीकरण"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Explanation (Hindi)
+                    स्पष्टीकरण (हिंदी)
                   </label>
                   <textarea
                     value={currentQuestion.explanationHindi}
@@ -483,15 +483,15 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 onClick={addQuestion}
                 className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700"
               >
-                Add Question
+                प्रश्न जोड़ें
               </button>
             </div>
 
             {/* Question List */}
             <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-4">Questions ({questions.length})</h3>
+              <h3 className="text-lg font-semibold mb-4">प्रश्न ({questions.length})</h3>
               {questions.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No questions added yet</p>
+                <p className="text-gray-500 text-center py-8">अभी तक कोई प्रश्न नहीं जोड़ा गया</p>
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {questions.map((question, index) => (
@@ -499,7 +499,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
                           <div className="flex items-center">
-                            <span className="font-medium mr-2">Q{question.questionNumber}:</span>
+                            <span className="font-medium mr-2">प्र{question.questionNumber}:</span>
                             <div className="flex-1">
                               <p className="font-medium">{question.question}</p>
                               {question.questionHindi && (
@@ -521,17 +521,18 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                               'bg-red-100 text-red-800'
                             }`}
                           >
-                            {question.difficulty}
+                            {question.difficulty === 'Easy' ? 'आसान' : 
+                             question.difficulty === 'Medium' ? 'मध्यम' : 'कठिन'}
                           </button>
                           <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                            {question.marks} mark{question.marks !== 1 ? 's' : ''}
+                            {question.marks} अंक{question.marks !== 1 ? '' : ''}
                           </span>
                           <button
                             type="button"
                             onClick={() => deleteQuestion(index)}
                             className="text-red-600 hover:text-red-800"
                           >
-                            Delete
+                            हटाएं
                           </button>
                         </div>
                       </div>
@@ -539,14 +540,14 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                         {question.options.map((opt, optIndex) => (
                           <div key={optIndex} className={`flex items-center ${opt.isCorrect ? 'font-semibold text-green-700' : ''}`}>
                             <span className="mr-2">{String.fromCharCode(65 + optIndex)}.</span>
-                            <span>{opt.text || opt.textHindi || '(Empty)'}</span>
+                            <span>{opt.text || opt.textHindi || '(खाली)'}</span>
                             {opt.isCorrect && <span className="ml-2">✓</span>}
                           </div>
                         ))}
                       </div>
                       {question.explanation && (
                         <div className="mt-2 text-sm text-gray-500 ml-6">
-                          <span className="font-medium">Explanation:</span> {question.explanation}
+                          <span className="font-medium">स्पष्टीकरण:</span> {question.explanation}
                         </div>
                       )}
                     </div>
@@ -563,7 +564,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
+                  श्रेणी *
                 </label>
                 <select
                   value={pyqData.category}
@@ -571,18 +572,18 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 >
-                  <option value="">Select Category</option>
-                  <option value="Preliminary">Preliminary</option>
-                  <option value="Mains">Mains</option>
-                  <option value="Optional">Optional</option>
-                  <option value="General Studies">General Studies</option>
-                  <option value="Aptitude">Aptitude</option>
-                  <option value="Other">Other</option>
+                  <option value="">श्रेणी चुनें</option>
+                  <option value="Preliminary">प्रारंभिक</option>
+                  <option value="Mains">मुख्य परीक्षा</option>
+                  <option value="Optional">वैकल्पिक</option>
+                  <option value="General Studies">सामान्य अध्ययन</option>
+                  <option value="Aptitude">योग्यता</option>
+                  <option value="Other">अन्य</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Time Limit (minutes)
+                  समय सीमा (मिनट)
                 </label>
                 <input
                   type="number"
@@ -597,18 +598,18 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Instructions (English)
+                  निर्देश (अंग्रेजी)
                 </label>
                 <textarea
                   value={pyqData.instructions}
                   onChange={(e) => setPyqData({ ...pyqData, instructions: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-32"
-                  placeholder="Exam instructions"
+                  placeholder="परीक्षा निर्देश"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Instructions (Hindi)
+                  निर्देश (हिंदी)
                 </label>
                 <textarea
                   value={pyqData.instructionsHindi}
@@ -621,14 +622,14 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tags (comma separated)
+                टैग्स (कॉमा से अलग)
               </label>
               <input
                 type="text"
                 value={pyqData.tags}
                 onChange={(e) => setPyqData({ ...pyqData, tags: e.target.value })}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="e.g., upsc, prelims, general-studies, polity"
+                placeholder="जैसे, upsc, prelims, general-studies, polity"
               />
             </div>
 
@@ -641,7 +642,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
               />
               <label htmlFor="publish" className="ml-3 block text-sm font-medium text-gray-900">
-                Publish immediately (make visible to users)
+                तुरंत प्रकाशित करें (उपयोगकर्ताओं के लिए दृश्यमान बनाएं)
               </label>
             </div>
           </div>
@@ -656,7 +657,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 onClick={() => setActiveTab(activeTab === 'questions' ? 'basic' : 'questions')}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
               >
-                Back
+                पीछे
               </button>
             )}
           </div>
@@ -668,7 +669,7 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                 onClick={() => setActiveTab(activeTab === 'basic' ? 'questions' : 'settings')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
               >
-                Next
+                आगे
               </button>
             )}
             {activeTab === 'settings' && (
@@ -678,13 +679,13 @@ const AdminPyqEditor = ({ onSave, initialData, onCancel }) => {
                   onClick={onCancel}
                   className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400"
                 >
-                  Cancel
+                  रद्द करें
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
                 >
-                  {initialData ? 'Update PYQ' : 'Create PYQ'}
+                  {initialData ? 'PYQ अपडेट करें' : 'PYQ बनाएं'}
                 </button>
               </>
             )}

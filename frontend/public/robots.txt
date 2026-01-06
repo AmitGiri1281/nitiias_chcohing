@@ -1,13 +1,148 @@
+# ============================================
 # robots.txt for Niti IAS Coaching Institute
+# Bilingual Site (Hindi & English)
+# ============================================
+
 User-agent: *
 Allow: /
 
-# Block internal or sensitive routes (if any)
+# ================= CRAWL DELAYS =================
+# Prevent server overload
+Crawl-delay: 1
+
+# ================= BLOCKED AREAS =================
+# Admin and backend areas
 Disallow: /admin/
+Disallow: /admin-panel/
 Disallow: /dashboard/
+Disallow: /backend/
+Disallow: /login/
+Disallow: /signin/
+Disallow: /register/
+Disallow: /signup/
+Disallow: /account/
+
+# API endpoints
 Disallow: /api/
+Disallow: /graphql/
+Disallow: /wp-admin/
+Disallow: /wp-login.php
 
-# Sitemap location
+# Development and test areas
+Disallow: /test/
+Disallow: /dev/
+Disallow: /staging/
+Disallow: /development/
+
+# Search and filter queries (to reduce crawl budget)
+Disallow: /search/
+Disallow: /?search=
+Disallow: /?q=
+Disallow: /?filter=
+Disallow: /?sort=
+
+# Session and user-specific pages
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /orders/
+Disallow: /profile/
+Disallow: /settings/
+
+# ================= ALLOWED FOR GOOGLEBOT =================
+# Googlebot has special access for better indexing
+User-agent: Googlebot
+Allow: /
+Allow: /en/
+Allow: /hi/
+Allow: /*.html
+Allow: /*.pdf
+Allow: /*.jpg
+Allow: /*.png
+
+# Googlebot News (if you have news content)
+User-agent: Googlebot-News
+Allow: /
+Allow: /blog/
+Allow: /en/blog/
+Allow: /hi/blog/
+
+# Googlebot Image
+User-agent: Googlebot-Image
+Allow: /
+Allow: /images/
+Allow: /uploads/
+Allow: /assets/
+
+# ================= OTHER SEARCH ENGINES =================
+User-agent: Bingbot
+Allow: /
+Allow: /en/
+Allow: /hi/
+Crawl-delay: 2
+
+User-agent: Yandex
+Allow: /
+Allow: /en/
+Allow: /hi/
+Crawl-delay: 3
+Clean-param: ref /blog/
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 5
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# ================= AGGRESSIVE CRAWLERS =================
+# Block known aggressive crawlers
+User-agent: AhrefsBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: DotBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: BLEXBot
+Disallow: /
+Crawl-delay: 10
+
+# ================= ALLOWED DIRECTORIES =================
+# Explicitly allow important directories
+Allow: /images/
+Allow: /assets/
+Allow: /css/
+Allow: /js/
+Allow: /fonts/
+Allow: /uploads/
+Allow: /static/
+Allow: /public/
+
+# ================= SITEMAPS =================
 Sitemap: https://www.nitiias.org/sitemap.xml
+Sitemap: https://www.nitiias.org/sitemap-hi.xml
+Sitemap: https://www.nitiias.org/sitemap-en.xml
+Sitemap: https://www.nitiias.org/sitemap-blog.xml
+Sitemap: https://www.nitiias.org/sitemap-courses.xml
+Sitemap: https://www.nitiias.org/sitemap-pyqs.xml
 
+# ================= HOST =================
+# Primary domain (important for canonicalization)
 Host: https://www.nitiias.org
+
+# ================= ADDITIONAL NOTES =================
+# Visit time window (optional)
+# Visit-time: 0100-0500
+
+# Request rate (optional)
+# Request-rate: 1/5

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const { t } = useTranslation();
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -30,7 +28,7 @@ const Login = () => {
     setError('');
 
     if (!isLogin && formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('पासवर्ड मेल नहीं खा रहे हैं');
       setLoading(false);
       return;
     }
@@ -49,7 +47,7 @@ const Login = () => {
         setError(result.message);
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('कुछ गलती हुई। कृपया फिर से प्रयास करें।');
     } finally {
       setLoading(false);
     }
@@ -60,7 +58,7 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {isLogin ? t('loginToAccount') : t('registerAccount')}
+            {isLogin ? 'अपने खाते में लॉगिन करें' : 'नया खाता बनाएँ'}
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -73,7 +71,7 @@ const Login = () => {
           {!isLogin && (
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                {t('name')}
+                नाम
               </label>
               <input
                 id="name"
@@ -83,14 +81,14 @@ const Login = () => {
                 value={formData.name}
                 onChange={handleChange}
                 className="input-field mt-1"
-                placeholder="Enter your name"
+                placeholder="अपना नाम दर्ज करें"
               />
             </div>
           )}
           
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              {t('email')}
+              ईमेल
             </label>
             <input
               id="email"
@@ -100,13 +98,13 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               className="input-field mt-1"
-              placeholder="Enter your email"
+              placeholder="अपना ईमेल दर्ज करें"
             />
           </div>
           
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              {t('password')}
+              पासवर्ड
             </label>
             <input
               id="password"
@@ -116,14 +114,14 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               className="input-field mt-1"
-              placeholder="Enter your password"
+              placeholder="अपना पासवर्ड दर्ज करें"
             />
           </div>
           
           {!isLogin && (
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                {t('confirmPassword')}
+                पासवर्ड की पुष्टि करें
               </label>
               <input
                 id="confirmPassword"
@@ -133,7 +131,7 @@ const Login = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className="input-field mt-1"
-                placeholder="Confirm your password"
+                placeholder="पासवर्ड दोबारा दर्ज करें"
               />
             </div>
           )}
@@ -144,7 +142,7 @@ const Login = () => {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {loading ? t('loading') : (isLogin ? t('login') : t('registerAccount'))}
+              {loading ? 'लोड हो रहा है...' : (isLogin ? 'लॉगिन करें' : 'रजिस्टर करें')}
             </button>
           </div>
           
@@ -154,7 +152,7 @@ const Login = () => {
               onClick={() => setIsLogin(!isLogin)}
               className="text-primary-600 hover:text-primary-500"
             >
-              {isLogin ? 'Need an account? Register here' : 'Already have an account? Login here'}
+              {isLogin ? 'नया खाता बनाना है? यहाँ रजिस्टर करें' : 'पहले से खाता है? यहाँ लॉगिन करें'}
             </button>
           </div>
         </form>
