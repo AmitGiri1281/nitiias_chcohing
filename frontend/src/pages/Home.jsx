@@ -1,19 +1,54 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BookOpen,
   Users,
-  Award,
   FileText,
   Calendar,
   Target,
   Clock,
   Trophy,
-  GraduationCap,
-  ShieldCheck,
 } from "lucide-react";
 import { api } from "../utils/api";
+
+/* ================= HELPERS ================= */
+
+const formatPrice = (price) =>
+  new Intl.NumberFormat("hi-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(price);
+
+const formatDate = (date) =>
+  new Date(date).toLocaleDateString("hi-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+/* ================= REUSABLE ================= */
+
+const Loader = () => (
+  <div className="text-center py-12">
+    <div className="animate-spin h-10 w-10 border-b-2 border-primary-600 mx-auto"></div>
+  </div>
+);
+
+const SectionHeader = memo(({ title, subtitle, link }) => (
+  <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+    <div>
+      <h2 className="text-2xl md:text-3xl font-bold">{title}</h2>
+      {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
+    </div>
+    <Link to={link} className="text-primary-600 font-semibold flex items-center">
+      सभी देखें <ArrowRight size={18} className="ml-1" />
+    </Link>
+  </div>
+));
+
+/* ================= MAIN ================= */
 
 const Home = () => {
   const [courses, setCourses] = useState([]);
@@ -37,31 +72,17 @@ const Home = () => {
       if (c.status === "fulfilled") setCourses(c.value.data || []);
       if (b.status === "fulfilled") setBlogs(b.value.data?.blogs || b.value.data || []);
       if (p.status === "fulfilled") setPyqs(p.value.data?.pyqs || p.value.data || []);
-    } catch (err) {
-      console.error("डेटा लोड करने में त्रुटि:", err);
+    } catch (e) {
+      console.error("Home load error:", e);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatPrice = (price) =>
-    new Intl.NumberFormat("hi-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
-
-  const formatDate = (date) =>
-    new Date(date).toLocaleDateString("hi-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-
   return (
     <div>
-      {/* ================= HERO ================= */}
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-10 md:py-16">
+      {/* ============ HERO ============ */}
+      <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-12 md:py-16">
         <div className="max-w-7xl mx-auto text-center px-4">
           <h1 className="text-2xl md:text-5xl font-bold mb-4">
             सिविल सेवा सफलता का आपका मार्गदर्शक
@@ -81,94 +102,88 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ================= PYQs ================= */}
-      <section className="py-8 md:py-14 bg-gray-50">
+      {/* ============ PYQS ============ */}
+      <section className="py-10 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <SectionHeader title="पिछले वर्षों के प्रश्न" link="/pyqs" />
+          <SectionHeader
+            title="पिछले वर्षों के प्रश्न"
+            subtitle="वास्तविक परीक्षा पैटर्न के साथ अभ्यास करें"
+            link="/pyqs"
+          />
 
           {loading ? <Loader /> : (
-            <Grid>
-              {pyqs.slice(0, 3).map((pyq) => (
-                <Card key={pyq._id} icon={<FileText size={32} />}>
-                  <h3 className="font-bold text-base line-clamp-2">{pyq.titleHindi || pyq.title}</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pyqs.map((pyq) => (
+                <div key={pyq._id} className="bg-white border rounded-xl p-4 shadow hover:shadow-lg">
+                  <h3 className="font-bold line-clamp-2">{pyq.titleHindi || pyq.title}</h3>
                   <p className="text-sm text-gray-600">{pyq.subjectHindi || pyq.subject}</p>
-                  <Link to={`/pyq/${pyq._id}`} className="btn-green">Start</Link>
-                </Card>
+                  <Link to={`/pyq/${pyq._id}`} className="text-primary-600 font-semibold mt-2 inline-block">
+                    Start →
+                  </Link>
+                </div>
               ))}
-            </Grid>
+            </div>
           )}
         </div>
       </section>
 
-      {/* ================= COURSES ================= */}
-      <section className="py-8 md:py-14 bg-white">
+      {/* ============ COURSES ============ */}
+      <section className="py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <SectionHeader title="हमारे कोर्सेज" link="/courses" />
+          <SectionHeader
+            title="हमारे कोर्सेज"
+            subtitle="सिविल सेवा सफलता के लिए व्यापक कार्यक्रम"
+            link="/courses"
+          />
 
           {loading ? <Loader /> : (
-            <Grid>
-              {courses.slice(0, 3).map((course) => (
-                <Card key={course._id} icon={<BookOpen size={32} />}>
-                  <h3 className="font-bold text-base line-clamp-2">{course.titleHindi || course.title}</h3>
-                  <p className="text-sm text-gray-600 line-clamp-2">{course.descriptionHindi || course.description}</p>
-                  <p className="text-primary-600 font-bold">{formatPrice(course.price)}</p>
-                  <Link to={`/course/${course._id}`} className="btn-primary">देखें</Link>
-                </Card>
-              ))}
-            </Grid>
-          )}
-        </div>
-      </section>
-
-      {/* ================= BLOGS ================= */}
-      <section className="py-8 md:py-14 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <SectionHeader title="नवीनतम लेख" link="/blog" />
-
-          {loading ? <Loader /> : (
-            <Grid>
-              {blogs.slice(0, 3).map((blog) => (
-                <Card key={blog._id}>
-                  <p className="text-xs text-gray-500">{formatDate(blog.createdAt)}</p>
-                  <h3 className="font-bold text-base line-clamp-2">{blog.titleHindi || blog.title}</h3>
-                  <p className="text-sm text-gray-600 line-clamp-3">
-                    {blog.contentHindi?.substring(0, 80) || blog.content?.substring(0, 80)}...
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map((course) => (
+                <div key={course._id} className="border rounded-xl p-4 shadow hover:shadow-lg">
+                  <h3 className="font-bold line-clamp-2">{course.titleHindi || course.title}</h3>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {course.descriptionHindi || course.description}
                   </p>
-                  <Link to={`/blog/${blog._id}`} className="text-primary-600 font-semibold">पढ़ें →</Link>
-                </Card>
+                  <p className="font-bold text-primary-600">{formatPrice(course.price)}</p>
+                  <Link to={`/course/${course._id}`} className="btn-primary mt-2 inline-block">
+                    देखें →
+                  </Link>
+                </div>
               ))}
-            </Grid>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ============ BLOGS ============ */}
+      <section className="py-10 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <SectionHeader
+            title="नवीनतम लेख"
+            subtitle="सिविल सेवा उम्मीदवारों के लिए टिप्स"
+            link="/blog"
+          />
+
+          {loading ? <Loader /> : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {blogs.map((blog) => (
+                <div key={blog._id} className="bg-white border rounded-xl p-4 shadow hover:shadow-lg">
+                  <p className="text-xs text-gray-500">{formatDate(blog.createdAt)}</p>
+                  <h3 className="font-bold line-clamp-2">{blog.titleHindi || blog.title}</h3>
+                  <p className="text-sm text-gray-600 line-clamp-3">
+                    {blog.contentHindi?.slice(0, 100) || blog.content?.slice(0, 100)}...
+                  </p>
+                  <Link to={`/blog/${blog._id}`} className="text-primary-600 font-semibold">
+                    पढ़ें →
+                  </Link>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </section>
     </div>
   );
 };
-
-/* ================= SMALL COMPONENTS ================= */
-
-const SectionHeader = ({ title, link }) => (
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-xl md:text-3xl font-bold">{title}</h2>
-    <Link to={link} className="text-primary-600 font-semibold">सभी देखें →</Link>
-  </div>
-);
-
-const Grid = ({ children }) => (
-  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">{children}</div>
-);
-
-const Card = ({ children, icon }) => (
-  <div className="bg-white border rounded-xl p-3 md:p-5 shadow hover:shadow-lg transition">
-    {icon && <div className="h-24 flex items-center justify-center text-primary-600">{icon}</div>}
-    <div className="space-y-2">{children}</div>
-  </div>
-);
-
-const Loader = () => (
-  <div className="text-center py-10">
-    <div className="animate-spin h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-  </div>
-);
 
 export default Home;

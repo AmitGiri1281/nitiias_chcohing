@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Menu, X, User, ChevronDown, FileText, Home, BookOpen, Newspaper, LogOut, Settings, BookMarked } from 'lucide-react';
+import {
+  Menu, X, User, ChevronDown,
+  FileText, Home, BookOpen, Newspaper,
+  LogOut, Settings, BookMarked
+} from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -12,13 +16,11 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
-  // Close menu on route change
   useEffect(() => {
     setIsOpen(false);
     setIsProfileOpen(false);
   }, [location.pathname]);
 
-  // Close profile dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -29,14 +31,13 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Prevent background scroll
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'auto';
   }, [isOpen]);
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   const navItems = [
@@ -47,68 +48,80 @@ const Navbar = () => {
   ];
 
   const navLinkClass = ({ isActive }) =>
-    `flex items-center font-medium transition-colors ${
+    `flex items-center gap-2 font-medium ${
       isActive ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'
     }`;
 
   return (
     <>
-      <nav className="bg-white shadow-md sticky top-0 z-50 border-b">
+      <nav className="bg-white shadow sticky top-0 z-50 border-b">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16 items-center">
 
             {/* Logo */}
             <Link to="/" className="flex items-center">
-              <img src="/logo.png" alt="Niti IAS" className="h-10 w-10 mr-3" />
+              <img src="/logo.png" className="h-10 w-10 mr-3" alt="Niti IAS" />
               <div>
                 <p className="text-2xl font-bold text-primary-600">Niti IAS</p>
-                <p className="text-xs text-gray-500 hidden sm:block">सिविल सेवा कोचिंग</p>
+                <p className="text-xs text-gray-500 hidden sm:block">
+                  सिविल सेवा कोचिंग
+                </p>
               </div>
             </Link>
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-6">
+            {/* Desktop Nav */}
+            <div className="hidden md:flex gap-6">
               {navItems.map(item => (
                 <NavLink key={item.to} to={item.to} className={navLinkClass}>
-                  <item.icon size={18} className="mr-2" />
+                  <item.icon size={18} />
                   {item.label}
                 </NavLink>
               ))}
-
-              {user?.role === 'admin' && (
-                <NavLink to="/admin" className={navLinkClass}>
-                  <Settings size={18} className="mr-2" />
-                  Admin
-                </NavLink>
-              )}
             </div>
 
-            {/* Right Side */}
+            {/* Right */}
             <div className="flex items-center gap-4">
-
-              {/* Profile */}
               {user ? (
                 <div ref={profileRef} className="relative hidden md:block">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border"
                   >
-                    <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold">
+                    <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center">
                       {user.name?.charAt(0).toUpperCase()}
                     </div>
-                    <span className="font-medium">{user.name}</span>
-                    <ChevronDown size={16} className={`${isProfileOpen ? 'rotate-180' : ''}`} />
+                    <span>{user.name}</span>
+                    <ChevronDown size={16} />
                   </button>
 
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-60 bg-white shadow-xl rounded-lg border">
-                      <Link to="/profile" className="block px-4 py-3 hover:bg-gray-50">Profile</Link>
-                      {user.role === 'student' && (
-                        <Link to="/my-courses" className="block px-4 py-3 hover:bg-gray-50">My Courses</Link>
+                    <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg border">
+                      <Link className="block px-4 py-3 hover:bg-gray-50" to="/profile">
+                        Profile
+                      </Link>
+
+                      {user.role === 'admin' && (
+                        <Link className="block px-4 py-3 hover:bg-gray-50" to="/admin">
+                          Admin Dashboard
+                        </Link>
                       )}
-                      <Link to="/my-pyqs" className="block px-4 py-3 hover:bg-gray-50">My PYQs</Link>
+
+                      {user.role === 'student' && (
+                        <Link className="block px-4 py-3 hover:bg-gray-50" to="/my-courses">
+                          My Courses
+                        </Link>
+                      )}
+
+                      <Link className="block px-4 py-3 hover:bg-gray-50" to="/my-pyqs">
+                        My PYQs
+                      </Link>
+
                       <div className="border-t" />
-                      <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50">
+
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
+                      >
                         Logout
                       </button>
                     </div>
@@ -120,8 +133,8 @@ const Navbar = () => {
                 </Link>
               )}
 
-              {/* Mobile Button */}
-              <button onClick={() => setIsOpen(!isOpen)} className="md:hidden">
+              {/* Mobile */}
+              <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
                 {isOpen ? <X /> : <Menu />}
               </button>
             </div>
@@ -137,6 +150,12 @@ const Navbar = () => {
               {item.label}
             </NavLink>
           ))}
+
+          {user?.role === 'admin' && (
+            <NavLink to="/admin" className="block px-4 py-3 rounded hover:bg-gray-100">
+              Admin Dashboard
+            </NavLink>
+          )}
 
           {user ? (
             <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-600">
