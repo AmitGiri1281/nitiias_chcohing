@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { 
   FaBold, 
   FaItalic, 
@@ -15,14 +14,41 @@ import {
   FaEye,
   FaEyeSlash,
   FaExclamationCircle,
-  FaPalette,
   FaFont,
   FaMagic
 } from "react-icons/fa";
 
+// Utility functions outside component for better performance
+const escapeHTML = (str = "") =>
+  str.replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[m]));
+
+const fonts = {
+  default: "font-sans",
+  modern: "font-['Inter']",
+  elegant: "font-['Playfair_Display']",
+  clean: "font-['Poppins']",
+  traditional: "font-['Noto_Sans_Devanagari']",
+  creative: "font-['Montserrat']"
+};
+
+const fontOptions = [
+  { id: "default", name: "डिफ़ॉल्ट", icon: "🔄" },
+  { id: "modern", name: "आधुनिक", icon: "🚀" },
+  { id: "elegant", name: "एलिगेंट", icon: "✨" },
+  { id: "clean", name: "क्लीन", icon: "🧹" },
+  { id: "traditional", name: "पारंपरिक", icon: "🕌" },
+  { id: "creative", name: "क्रिएटिव", icon: "🎨" }
+];
+
 const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
-  const { t } = useTranslation();
   const textareaRef = useRef(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [blogData, setBlogData] = useState(
     initialData || {
@@ -41,17 +67,21 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
   const [imageError, setImageError] = useState("");
   const [fontStyle, setFontStyle] = useState("default");
 
-  // Available font styles
-  const fonts = {
-    default: "font-sans",
-    modern: "font-['Inter']",
-    elegant: "font-['Playfair_Display']",
-    clean: "font-['Poppins']",
-    traditional: "font-['Noto_Sans_Devanagari']",
-    creative: "font-['Montserrat']"
-  };
+  // Prevent accidental page refresh when there's unsaved content
+  useEffect(() => {
+    const warnUnload = (e) => {
+      if (blogData.titleHindi || blogData.contentHindi) {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+    
+    window.addEventListener("beforeunload", warnUnload);
+    return () => window.removeEventListener("beforeunload", warnUnload);
+  }, [blogData.titleHindi, blogData.contentHindi]);
 
-  // Auto-save draft
+  // Optimized auto-save: only runs on relevant fields
   useEffect(() => {
     const timer = setTimeout(() => {
       if (blogData.contentHindi || blogData.titleHindi) {
@@ -67,7 +97,7 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
     }, 3000);
     
     return () => clearTimeout(timer);
-  }, [blogData]);
+  }, [blogData.titleHindi, blogData.contentHindi, blogData.category, blogData.tags]);
 
   // Load draft on mount
   useEffect(() => {
@@ -139,6 +169,7 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
       formData.append("image", imageFile);
     }
 
+    setIsSaving(true);
     onSave(formData);
   };
 
@@ -162,8 +193,9 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
     setImageError("");
     setImageFile(file);
     const reader = new FileReader();
-    reader.onload = (e) =>
-      setBlogData({ ...blogData, image: e.target.result });
+    reader.onload = (e) => {
+      setBlogData(prev => ({ ...prev, image: e.target.result }));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -212,7 +244,10 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                       formattedText + 
                       blogData.contentHindi.substring(end);
     
-    setBlogData({ ...blogData, contentHindi: newContent });
+    setBlogData(prev => ({
+      ...prev,
+      contentHindi: newContent
+    }));
     
     setTimeout(() => {
       textarea.focus();
@@ -222,13 +257,8 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
   };
 
   const formatPreview = (content) => {
-    const sanitizeHTML = (html) => {
-      const div = document.createElement('div');
-      div.textContent = html;
-      return div.innerHTML;
-    };
-
-    let formatted = sanitizeHTML(content);
+    // ✅ FIXED: Use escapeHTML to prevent XSS
+    let formatted = escapeHTML(content);
     
     formatted = formatted
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
@@ -253,10 +283,10 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
       .filter((t, i, self) => self.indexOf(t) === i)
       .slice(0, 10);
     
-    setBlogData({
-      ...blogData,
+    setBlogData(prev => ({
+      ...prev,
       tags: tagsArray
-    });
+    }));
   };
 
   const clearDraft = () => {
@@ -277,8 +307,8 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
 
   const insertSample = () => {
     if (!blogData.contentHindi) {
-      setBlogData({
-        ...blogData,
+      setBlogData(prev => ({
+        ...prev,
         contentHindi: `## स्वागत है नए ब्लॉग लेखक!
 
 आप अपने पहले ब्लॉग को एक शानदार शुरुआत देने जा रहे हैं। यहाँ कुछ टिप्स हैं:
@@ -301,19 +331,9 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
 [अधिक जानकारी के लिए यहाँ क्लिक करें](https://example.com)
 
 <u>सफलता की कुंजी</u>: नियमितता और गुणवत्ता!`
-      });
+      }));
     }
   };
-
-  // Font style options
-  const fontOptions = [
-    { id: "default", name: "डिफ़ॉल्ट", icon: "🔄" },
-    { id: "modern", name: "आधुनिक", icon: "🚀" },
-    { id: "elegant", name: "एलिगेंट", icon: "✨" },
-    { id: "clean", name: "क्लीन", icon: "🧹" },
-    { id: "traditional", name: "पारंपरिक", icon: "🕌" },
-    { id: "creative", name: "क्रिएटिव", icon: "🎨" }
-  ];
 
   return (
     <div className={`bg-gradient-to-br from-gray-50 via-white to-blue-50/30 p-8 rounded-3xl shadow-2xl max-w-5xl mx-auto border border-gray-300/50 backdrop-blur-sm ${fonts[fontStyle]}`}>
@@ -335,7 +355,10 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
           <div className="flex items-center gap-3">
             {/* Font Style Selector */}
             <div className="relative group">
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/30 transition-all font-medium">
+              <button 
+                type="button"
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/30 transition-all font-medium"
+              >
                 <FaFont className="text-lg" />
                 <span className="hidden md:inline">फ़ॉन्ट</span>
               </button>
@@ -424,8 +447,8 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
             required
             value={blogData.titleHindi}
             onChange={(e) => {
-              setBlogData({ ...blogData, titleHindi: e.target.value });
-              if (errors.titleHindi) setErrors({...errors, titleHindi: ""});
+              setBlogData(prev => ({ ...prev, titleHindi: e.target.value }));
+              if (errors.titleHindi) setErrors(prev => ({...prev, titleHindi: ""}));
             }}
             className={`w-full p-5 text-xl rounded-xl focus:ring-4 transition-all font-bold tracking-wide placeholder-gray-400 ${
               errors.titleHindi 
@@ -569,8 +592,8 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                 required
                 value={blogData.contentHindi}
                 onChange={(e) => {
-                  setBlogData({ ...blogData, contentHindi: e.target.value });
-                  if (errors.contentHindi) setErrors({...errors, contentHindi: ""});
+                  setBlogData(prev => ({ ...prev, contentHindi: e.target.value }));
+                  if (errors.contentHindi) setErrors(prev => ({...prev, contentHindi: ""}));
                 }}
                 className={`w-full p-6 text-lg rounded-2xl focus:ring-4 transition-all leading-relaxed tracking-wide placeholder-gray-500/70 shadow-inner min-h-[400px] font-medium ${
                   errors.contentHindi 
@@ -667,8 +690,8 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                   required
                   value={blogData.category}
                   onChange={(e) => {
-                    setBlogData({ ...blogData, category: e.target.value });
-                    if (errors.category) setErrors({...errors, category: ""});
+                    setBlogData(prev => ({ ...prev, category: e.target.value }));
+                    if (errors.category) setErrors(prev => ({...prev, category: ""}));
                   }}
                   className={`w-full p-4 text-lg rounded-xl appearance-none focus:ring-4 transition-all font-medium shadow-inner ${
                     errors.category 
@@ -746,10 +769,10 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                     key={index} 
                     className="group relative px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2"
                     onClick={() => {
-                      setBlogData({
-                        ...blogData,
-                        tags: blogData.tags.filter((_, i) => i !== index)
-                      });
+                      setBlogData(prev => ({
+                        ...prev,
+                        tags: prev.tags.filter((_, i) => i !== index)
+                      }));
                     }}
                   >
                     <span className="font-bold">#</span>
@@ -846,7 +869,7 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                     <button
                       type="button"
                       onClick={() => {
-                        setBlogData({ ...blogData, image: null });
+                        setBlogData(prev => ({ ...prev, image: null }));
                         setImageFile(null);
                         setImageError("");
                       }}
@@ -898,14 +921,22 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                           ? 'bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30' 
                           : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-inner'
                       }`}
-                      onClick={() => setBlogData({ ...blogData, isPublished: !blogData.isPublished })}
+                      onClick={() =>
+                        setBlogData(prev => ({
+                          ...prev,
+                          isPublished: !prev.isPublished
+                        }))
+                      }
                       role="switch"
                       aria-checked={blogData.isPublished}
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          setBlogData({ ...blogData, isPublished: !blogData.isPublished });
+                          setBlogData(prev => ({
+                            ...prev,
+                            isPublished: !prev.isPublished
+                          }));
                         }
                       }}
                     >
@@ -993,12 +1024,15 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
               
               <button
                 type="submit"
-                className="group relative overflow-hidden flex items-center gap-3 px-10 py-3.5 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl hover:from-emerald-600 hover:to-green-600 transition-all shadow-xl hover:shadow-2xl font-bold text-lg min-w-[180px] justify-center"
+                disabled={isSaving}
+                className={`group relative overflow-hidden flex items-center gap-3 px-10 py-3.5 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl hover:from-emerald-600 hover:to-green-600 transition-all shadow-xl hover:shadow-2xl font-bold text-lg min-w-[180px] justify-center ${
+                  isSaving ? "opacity-70 cursor-not-allowed" : ""
+                }`}
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
                 <FaSave className="relative z-10 group-hover:scale-110 transition-transform" />
                 <span className="relative z-10">
-                  {initialData ? "🔄 अपडेट करें" : "💾 ब्लॉग सहेजें"}
+                  {isSaving ? "⏳ सहेजा जा रहा है..." : (initialData ? "🔄 अपडेट करें" : "💾 ब्लॉग सहेजें")}
                 </span>
               </button>
             </div>
