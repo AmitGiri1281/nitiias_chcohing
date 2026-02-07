@@ -1,10 +1,17 @@
-import React, { useEffect, useState, memo } from "react";
+import React, { useEffect, useState, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { api } from "../utils/api";
 
-/* ================= HELPERS ================= */
+/* ================= TYPES ================= */
+const DataState = {
+  IDLE: "idle",
+  LOADING: "loading",
+  SUCCESS: "success",
+  ERROR: "error",
+};
 
+/* ================= HELPERS ================= */
 const formatPrice = (price) =>
   new Intl.NumberFormat("hi-IN", {
     style: "currency",
@@ -19,182 +26,351 @@ const formatDate = (date) =>
     year: "numeric",
   });
 
-/* ================= REUSABLE ================= */
+const normalize = (data, key) => {
+  if (!data || typeof data !== "object") return [];
+  return Array.isArray(data) ? data : data[key] || [];
+};
 
+/* ================= REUSABLE COMPONENTS ================= */
 const Loader = () => (
   <div className="text-center py-12">
-    <div className="animate-spin h-10 w-10 border-b-2 border-primary-600 mx-auto"></div>
+    <div className="animate-spin h-10 w-10 border-b-2 border-primary-600 mx-auto" />
   </div>
 );
+
+const SkeletonLoader = memo(({ count = 3, className = "" }) => (
+  <>
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={`skeleton-${i}`}
+        className={`bg-gray-200 h-40 rounded-xl animate-pulse ${className}`}
+      />
+    ))}
+  </>
+));
+
+const ErrorMessage = memo(({ message, onRetry }) => (
+  <div className="text-center py-8">
+    <p className="text-red-600 font-semibold mb-2">{message}</p>
+    {onRetry && (
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+      >
+        पुनः प्रयास करें
+      </button>
+    )}
+  </div>
+));
+
+const EmptyState = memo(({ message }) => (
+  <p className="col-span-full text-center text-gray-500 py-8">{message}</p>
+));
 
 const SectionHeader = memo(({ title, subtitle, link }) => (
   <div className="flex flex-col md:flex-row justify-between items-center mb-6">
     <div>
-      <h2 className="text-2xl md:text-3xl font-bold">{title}</h2>
-      {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-800">{title}</h2>
+      {subtitle && (
+        <p className="text-gray-600 mt-1 text-sm md:text-base">{subtitle}</p>
+      )}
     </div>
-    <Link to={link} className="text-primary-600 font-semibold flex items-center">
-      सभी देखें <ArrowRight size={18} className="ml-1" />
+    {link && (
+      <Link
+        to={link}
+        className="inline-flex items-center text-primary-600 font-semibold hover:text-primary-700 transition-colors mt-2 md:mt-0 group"
+      >
+        सभी देखें
+        <ArrowRight
+          size={18}
+          className="ml-1 transition-transform group-hover:translate-x-1"
+        />
+      </Link>
+    )}
+  </div>
+));
+
+/* ================= CARD COMPONENTS ================= */
+const PyqCard = memo(({ pyq }) => (
+  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+    <h3 className="font-bold text-lg line-clamp-2 text-gray-800 mb-2">
+      {pyq.titleHindi || pyq.title}
+    </h3>
+    <p className="text-sm text-gray-600 mb-3">
+      {pyq.subjectHindi || pyq.subject}
+    </p>
+    {pyq.year && (
+      <p className="text-xs text-gray-500 mb-3">वर्ष: {pyq.year}</p>
+    )}
+    <Link
+      to={`/pyq/${pyq._id}`}
+      className="inline-flex items-center text-primary-600 font-semibold hover:text-primary-700 transition-colors"
+      aria-label={`${pyq.titleHindi || pyq.title} शुरू करें`}
+    >
+      शुरू करें
+      <ArrowRight size={16} className="ml-1" />
     </Link>
   </div>
 ));
 
-/* ================= MAIN ================= */
+const CourseCard = memo(({ course }) => (
+  <div className="border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white">
+    <h3 className="font-bold text-lg line-clamp-2 text-gray-800 mb-2">
+      {course.titleHindi || course.title}
+    </h3>
+    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+      {course.descriptionHindi || course.description}
+    </p>
+    <div className="flex justify-between items-center">
+      <p className="font-bold text-primary-600 text-lg">
+        {formatPrice(course.price)}
+      </p>
+      <Link
+        to={`/course/${course._id}`}
+        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-semibold"
+      >
+        देखें
+      </Link>
+    </div>
+  </div>
+));
 
-const Home = () => {
-  const [courses, setCourses] = useState([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
+const BlogCard = memo(({ blog }) => (
+  <Link
+    to={`/blog/${blog._id}`}
+    className="
+      block bg-white border border-gray-200 rounded-xl p-5
+      shadow-sm hover:shadow-lg
+      transition-all duration-200
+      hover:-translate-y-1
+      cursor-pointer
+      focus:outline-none focus:ring-2 focus:ring-primary-500
+    "
+    aria-label={`ब्लॉग पढ़ें: ${blog.titleHindi || blog.title}`}
+  >
+    <p className="text-xs text-gray-500 mb-2">
+      {formatDate(blog.createdAt)}
+    </p>
 
-  const [blogs, setBlogs] = useState([]);
-  const [blogsLoading, setBlogsLoading] = useState(true);
+    <h3 className="font-bold text-lg line-clamp-2 text-gray-800 mb-2">
+      {blog.titleHindi || blog.title}
+    </h3>
 
-  const [pyqs, setPyqs] = useState([]);
-  const [pyqsLoading, setPyqsLoading] = useState(true);
+    <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+      {blog.contentHindi?.slice(0, 150) || blog.content?.slice(0, 150)}...
+    </p>
 
-  useEffect(() => {
-    fetchCourses();
-    fetchBlogs();
-    fetchPyqs();
+    <span className="inline-flex items-center text-primary-600 font-semibold">
+      पढ़ें
+      <ArrowRight size={16} className="ml-1" />
+    </span>
+  </Link>
+));
+
+
+/* ================= DATA HOOK ================= */
+const useFetchData = () => {
+  const [data, setData] = useState({
+    courses: [],
+    blogs: [],
+    pyqs: [],
+  });
+  const [status, setStatus] = useState({
+    courses: DataState.IDLE,
+    blogs: DataState.IDLE,
+    pyqs: DataState.IDLE,
+  });
+  const [error, setError] = useState(null);
+
+  const fetchData = useCallback(async (controller) => {
+    try {
+      setStatus({
+        courses: DataState.LOADING,
+        blogs: DataState.LOADING,
+        pyqs: DataState.LOADING,
+      });
+      setError(null);
+
+      const [coursesRes, blogsRes, pyqsRes] = await Promise.all([
+        api.get("/courses?limit=3", { signal: controller.signal }),
+        api.get("/blogs?limit=3", { signal: controller.signal }),
+        api.get("/pyqs?limit=3", { signal: controller.signal }),
+      ]);
+
+      setData({
+        courses: normalize(coursesRes?.data, "courses"),
+        blogs: normalize(blogsRes?.data, "blogs"),
+        pyqs: normalize(pyqsRes?.data, "pyqs"),
+      });
+
+      setStatus({
+        courses: DataState.SUCCESS,
+        blogs: DataState.SUCCESS,
+        pyqs: DataState.SUCCESS,
+      });
+    } catch (err) {
+      if (err.name === "CanceledError") return;
+      
+      console.error("Fetch error:", err);
+      setError(err.response?.data?.message || "डेटा लोड करने में समस्या आई");
+      setStatus({
+        courses: DataState.ERROR,
+        blogs: DataState.ERROR,
+        pyqs: DataState.ERROR,
+      });
+    }
   }, []);
 
-  const fetchCourses = async () => {
-    try {
-      const res = await api.get("/courses?limit=3");
-      setCourses(res.data || []);
-    } catch (err) {
-      console.error("Courses load error:", err);
-    } finally {
-      setCoursesLoading(false);
+  return { data, status, error, fetchData };
+};
+
+/* ================= MAIN COMPONENT ================= */
+const Home = () => {
+  const { data, status, error, fetchData } = useFetchData();
+  const [abortController, setAbortController] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setAbortController(controller);
+    
+    fetchData(controller);
+
+    return () => {
+      controller.abort();
+    };
+  }, [fetchData]);
+
+  const handleRetry = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
     }
-  };
+    const controller = new AbortController();
+    setAbortController(controller);
+    fetchData(controller);
+  }, [fetchData, abortController]);
 
-  const fetchBlogs = async () => {
-    try {
-      const res = await api.get("/blogs?limit=3");
-      setBlogs(res.data?.blogs || res.data || []);
-    } catch (err) {
-      console.error("Blogs load error:", err);
-    } finally {
-      setBlogsLoading(false);
-    }
-  };
-
-  const fetchPyqs = async () => {
-    try {
-      const res = await api.get("/pyqs?limit=3");
-      setPyqs(res.data?.pyqs || res.data || []);
-    } catch (err) {
-      console.error("PYQs load error:", err);
-    } finally {
-      setPyqsLoading(false);
-    }
-  };
-
-  const renderSkeleton = (count = 3) =>
-    Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="bg-gray-200 h-40 rounded-xl animate-pulse"></div>
-    ));
-
-  return (
-    <div>
-      {/* HERO */}
+  const heroSection = useMemo(
+    () => (
       <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-12 md:py-16">
         <div className="max-w-7xl mx-auto text-center px-4">
-          <h1 className="text-2xl md:text-5xl font-bold mb-4">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
             सिविल सेवा सफलता का आपका मार्गदर्शक
           </h1>
-          <p className="text-base md:text-xl max-w-3xl mx-auto mb-6 text-primary-100">
+          <p className="text-base md:text-xl max-w-3xl mx-auto mb-8 text-primary-100 leading-relaxed">
             UPSC, राज्य PCS और अन्य सिविल सेवा परीक्षाओं के लिए विशेषज्ञ मार्गदर्शन
           </p>
-
           <div className="flex flex-col sm:flex-row justify-center gap-3">
             <Link
               to="/courses"
-              className="bg-white text-primary-600 px-5 py-2.5 rounded-lg font-semibold"
+              className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors duration-200 shadow-md"
             >
               कोर्सेज देखें
             </Link>
             <Link
               to="/pyqs"
-              className="border-2 border-white px-5 py-2.5 rounded-lg font-semibold"
+              className="border-2 border-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors duration-200"
             >
               मुफ्त PYQs
             </Link>
           </div>
         </div>
       </section>
+    ),
+    []
+  );
 
-      {/* PYQS */}
-      <section className="py-10 bg-gray-50">
+  const renderContent = useCallback((type) => {
+    const currentStatus = status[type];
+    const currentData = data[type];
+    const isEmpty = currentData.length === 0;
+
+    if (currentStatus === DataState.LOADING) {
+      return <SkeletonLoader count={3} className="h-48" />;
+    }
+
+    if (currentStatus === DataState.ERROR) {
+      return (
+        <ErrorMessage
+          message="डेटा लोड करने में समस्या आई"
+          onRetry={handleRetry}
+        />
+      );
+    }
+
+    if (currentStatus === DataState.SUCCESS && isEmpty) {
+      return <EmptyState message={`कोई ${type} उपलब्ध नहीं है`} />;
+    }
+
+    if (currentStatus === DataState.SUCCESS) {
+      switch (type) {
+        case "pyqs":
+          return currentData.map((pyq) => (
+            <PyqCard key={pyq._id} pyq={pyq} />
+          ));
+        case "courses":
+          return currentData.map((course) => (
+            <CourseCard key={course._id} course={course} />
+          ));
+        case "blogs":
+          return currentData.map((blog) => (
+            <BlogCard key={blog._id} blog={blog} />
+          ));
+        default:
+          return null;
+      }
+    }
+
+    return null;
+  }, [data, status, handleRetry]);
+
+  return (
+    <div className="min-h-screen">
+      {heroSection}
+
+      {/* {error && (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+          <ErrorMessage message={error} onRetry={handleRetry} />
+        </div>
+      )} */}
+
+      {/* PYQS Section */}
+      <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <SectionHeader
             title="पिछले वर्षों के प्रश्न"
             subtitle="वास्तविक परीक्षा पैटर्न के साथ अभ्यास करें"
             link="/pyqs"
           />
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pyqsLoading ? renderSkeleton() : pyqs.map((pyq) => (
-              <div key={pyq._id} className="bg-white border rounded-xl p-4 shadow hover:shadow-lg">
-                <h3 className="font-bold line-clamp-2">{pyq.titleHindi || pyq.title}</h3>
-                <p className="text-sm text-gray-600">{pyq.subjectHindi || pyq.subject}</p>
-                <Link to={`/pyq/${pyq._id}`} className="text-primary-600 font-semibold mt-2 inline-block">
-                  Start →
-                </Link>
-              </div>
-            ))}
+            {renderContent("pyqs")}
           </div>
         </div>
       </section>
 
-      {/* COURSES */}
-      <section className="py-10 bg-white">
+      {/* Courses Section */}
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <SectionHeader
             title="हमारे कोर्सेज"
             subtitle="सिविल सेवा सफलता के लिए व्यापक कार्यक्रम"
             link="/courses"
           />
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coursesLoading ? renderSkeleton() : courses.map((course) => (
-              <div key={course._id} className="border rounded-xl p-4 shadow hover:shadow-lg">
-                <h3 className="font-bold line-clamp-2">{course.titleHindi || course.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {course.descriptionHindi || course.description}
-                </p>
-                <p className="font-bold text-primary-600">{formatPrice(course.price)}</p>
-                <Link to={`/course/${course._id}`} className="btn-primary mt-2 inline-block">
-                  देखें →
-                </Link>
-              </div>
-            ))}
+            {renderContent("courses")}
           </div>
         </div>
       </section>
 
-      {/* BLOGS */}
-      <section className="py-10 bg-gray-50">
+      {/* Blogs Section */}
+      <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <SectionHeader
             title="नवीनतम लेख"
             subtitle="सिविल सेवा उम्मीदवारों के लिए टिप्स"
             link="/blog"
           />
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blogsLoading ? renderSkeleton() : blogs.map((blog) => (
-              <div key={blog._id} className="bg-white border rounded-xl p-4 shadow hover:shadow-lg">
-                <p className="text-xs text-gray-500">{formatDate(blog.createdAt)}</p>
-                <h3 className="font-bold line-clamp-2">{blog.titleHindi || blog.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-3">
-                  {blog.contentHindi?.slice(0, 100) || blog.content?.slice(0, 100)}...
-                </p>
-                <Link to={`/blog/${blog._id}`} className="text-primary-600 font-semibold">
-                  पढ़ें →
-                </Link>
-              </div>
-            ))}
+            {renderContent("blogs")}
           </div>
         </div>
       </section>
