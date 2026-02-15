@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { api } from "../utils/api";
@@ -123,7 +123,7 @@ const CourseCard = memo(({ course }) => (
     </p>
     <div className="flex justify-between items-center">
       <p className="font-bold text-primary-600 text-lg">
-        {formatPrice(course.price)}
+        {formatPrice(course.price || 0)}
       </p>
       <Link
         to={`/course/${course._id}`}
@@ -169,55 +169,101 @@ const BlogCard = memo(({ blog }) => (
 
 
 /* ================= DATA HOOK ================= */
-const useFetchData = () => {
+ const useFetchData = () => {
   const [data, setData] = useState({
     courses: [],
     blogs: [],
     pyqs: [],
   });
+
   const [status, setStatus] = useState({
     courses: DataState.IDLE,
     blogs: DataState.IDLE,
     pyqs: DataState.IDLE,
   });
-  const [error, setError] = useState(null);
+
+  const [error, setError] = useState({
+  courses: null,
+  blogs: null,
+  pyqs: null,
+});
+
 
   const fetchData = useCallback(async (controller) => {
     try {
-      setStatus({
-        courses: DataState.LOADING,
-        blogs: DataState.LOADING,
-        pyqs: DataState.LOADING,
-      });
-      setError(null);
+      setStatus((prev) => ({
+  ...prev,
+  courses: DataState.LOADING,
+  blogs: DataState.LOADING,
+  pyqs: DataState.LOADING,
+}));
 
-      const [coursesRes, blogsRes, pyqsRes] = await Promise.all([
-        api.get("/courses?limit=3", { signal: controller.signal }),
-        api.get("/blogs?limit=3", { signal: controller.signal }),
-        api.get("/pyqs?limit=3", { signal: controller.signal }),
-      ]);
+     setError({
+  courses: null,
+  blogs: null,
+  pyqs: null,
+});
 
-      setData({
-        courses: normalize(coursesRes?.data, "courses"),
-        blogs: normalize(blogsRes?.data, "blogs"),
-        pyqs: normalize(pyqsRes?.data, "pyqs"),
-      });
 
-      setStatus({
-        courses: DataState.SUCCESS,
-        blogs: DataState.SUCCESS,
-        pyqs: DataState.SUCCESS,
-      });
+      const results = await Promise.allSettled([
+  api.get("/courses?limit=3", { signal: controller.signal }),
+  api.get("/blogs?limit=3", { signal: controller.signal }),
+  api.get("/pyqs?limit=3", { signal: controller.signal }),
+]);
+
+const [coursesRes, blogsRes, pyqsRes] = results;
+
+setData({
+  courses:
+    coursesRes.status === "fulfilled"
+      ? normalize(coursesRes.value?.data, "courses")
+      : [],
+  blogs:
+    blogsRes.status === "fulfilled"
+      ? normalize(blogsRes.value?.data, "blogs")
+      : [],
+  pyqs:
+    pyqsRes.status === "fulfilled"
+      ? normalize(pyqsRes.value?.data, "pyqs")
+      : [],
+});
+
+setStatus((prev) => ({
+  ...prev,
+  courses:
+    coursesRes.status === "fulfilled"
+      ? DataState.SUCCESS
+      : DataState.ERROR,
+  blogs:
+    blogsRes.status === "fulfilled"
+      ? DataState.SUCCESS
+      : DataState.ERROR,
+  pyqs:
+    pyqsRes.status === "fulfilled"
+      ? DataState.SUCCESS
+      : DataState.ERROR,
+}));
+
+
     } catch (err) {
-      if (err.name === "CanceledError") return;
+     if (err.code === "ERR_CANCELED") return;
+
+
       
       console.error("Fetch error:", err);
-      setError(err.response?.data?.message || "डेटा लोड करने में समस्या आई");
-      setStatus({
-        courses: DataState.ERROR,
-        blogs: DataState.ERROR,
-        pyqs: DataState.ERROR,
-      });
+setError({
+  courses: err?.response?.data?.message || "कोर्स लोड नहीं हुआ",
+  blogs: err?.response?.data?.message || "ब्लॉग लोड नहीं हुआ",
+  pyqs: err?.response?.data?.message || "PYQ लोड नहीं हुआ",
+});
+
+setStatus((prev) => ({
+  ...prev,
+  courses: DataState.ERROR,
+  blogs: DataState.ERROR,
+  pyqs: DataState.ERROR,
+}));
+
     }
   }, []);
 
@@ -227,27 +273,31 @@ const useFetchData = () => {
 /* ================= MAIN COMPONENT ================= */
 const Home = () => {
   const { data, status, error, fetchData } = useFetchData();
-  const [abortController, setAbortController] = useState(null);
+  const abortControllerRef = useRef(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    setAbortController(controller);
-    
-    fetchData(controller);
 
-    return () => {
-      controller.abort();
-    };
-  }, [fetchData]);
+ useEffect(() => {
+  const controller = new AbortController();
+  abortControllerRef.current = controller;
+
+  fetchData(controller);
+
+  return () => {
+    controller.abort();
+  };
+}, [fetchData]);
+
 
   const handleRetry = useCallback(() => {
-    if (abortController) {
-      abortController.abort();
-    }
+    abortControllerRef.current?.abort();
+
+
     const controller = new AbortController();
-    setAbortController(controller);
+abortControllerRef.current = controller;
+
     fetchData(controller);
-  }, [fetchData, abortController]);
+ }, [fetchData]);
+
 
   const heroSection = useMemo(
     () => (
@@ -287,15 +337,16 @@ const Home = () => {
     if (currentStatus === DataState.LOADING) {
       return <SkeletonLoader count={3} className="h-48" />;
     }
+if (currentStatus === DataState.ERROR) {
+  return (
+    <ErrorMessage
+      message={error[type] || "डेटा लोड करने में समस्या आई"}
+      onRetry={handleRetry}
+    />
+  );
+}
 
-    if (currentStatus === DataState.ERROR) {
-      return (
-        <ErrorMessage
-          message="डेटा लोड करने में समस्या आई"
-          onRetry={handleRetry}
-        />
-      );
-    }
+
 
     if (currentStatus === DataState.SUCCESS && isEmpty) {
       return <EmptyState message={`कोई ${type} उपलब्ध नहीं है`} />;
@@ -326,12 +377,19 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {heroSection}
+{/* 
+       {(error.courses || error.blogs || error.pyqs) && (
 
-      {/* {error && (
         <div className="max-w-7xl mx-auto px-4 mt-4">
-          <ErrorMessage message={error} onRetry={handleRetry} />
+          <ErrorMessage
+  message={
+    error.courses || error.blogs || error.pyqs || "डेटा लोड नहीं हुआ"
+  }
+  onRetry={handleRetry}
+/>
+
         </div>
-      )} */}
+      )}  */}
 
       {/* PYQS Section */}
       <section className="py-12 bg-gray-50">
