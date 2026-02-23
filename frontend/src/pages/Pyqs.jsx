@@ -146,14 +146,14 @@ const Pyqs = () => {
                 {pyq.descriptionHindi || pyq.description || 'कोई विवरण नहीं'}
               </p>
 
-              <div className="flex gap-2 text-sm">
-                <Link to={`/pyq/${pyq._id}`} className="flex-1 bg-green-600 text-white py-1.5 rounded text-center">
-                  Start
-                </Link>
-                <Link to={`/study/${pyq._id}`} className="flex-1 bg-blue-600 text-white py-1.5 rounded text-center">
-                  Study
-                </Link>
-              </div>
+             <div className="flex gap-2 text-sm">
+  <Link to={`/pyq/${pyq._id}`} className="flex-1 bg-green-600 text-white py-1.5 rounded text-center">
+    Start
+  </Link>
+  <Link to={`/pyq/${pyq._id}/study`} className="flex-1 bg-blue-600 text-white py-1.5 rounded text-center">
+    Study
+  </Link>
+</div>
 
             </div>
           ))}

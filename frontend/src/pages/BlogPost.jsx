@@ -478,7 +478,7 @@ const BlogPost = () => {
             )}
 
             {/* Author Bio */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 mt-8">
+            {/* <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 mt-8">
               <div className="flex items-start">
                 <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0 shadow-lg">
                   <User size={28} className="text-white" />
@@ -492,7 +492,7 @@ const BlogPost = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Call to Action */}
             <div className="mt-8 text-center bg-gradient-to-r from-primary-50 via-blue-50 to-primary-50 rounded-3xl p-8 border-2 border-dashed border-primary-200">

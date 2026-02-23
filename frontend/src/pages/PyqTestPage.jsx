@@ -311,7 +311,7 @@ const PyqTestPage = () => {
               फिर से प्रयास करें
             </button>
             <button
-              onClick={() => navigate(`/study/${id}`)}
+              onClick={() => navigate(`/pyq/${id}/study`)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 flex items-center transition-colors"
             >
               <BookOpen size={20} className="mr-2" />

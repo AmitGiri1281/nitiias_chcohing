@@ -1,8 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import { AuthProvider } from './contexts/AuthContext';
+
+
 
 // Components
 import Navbar from './components/Navbar';
@@ -48,5 +50,7 @@ function App() {
     </I18nextProvider>
   );
 }
+
+
 
 export default App;
