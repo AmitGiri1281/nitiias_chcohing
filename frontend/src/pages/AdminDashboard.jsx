@@ -39,7 +39,7 @@ const AdminDashboard = () => {
       setLoading(true);
       if (activeTab === 'blogs') {
         const response = await api.get('/blogs/admin');
-        setBlogs(response.data.blogs || []);
+setBlogs(response.data || []);
       } else if (activeTab === 'courses') {
         const response = await api.get('/courses');
         setCourses(response.data || []);
