@@ -18,14 +18,14 @@ const questionAnswerSchema = new mongoose.Schema({
     textHindi: String,
     isCorrect: Boolean
   }],
-  answer: {
-    type: String,
-    default: true
-  },
-  answerHindi: {
-    type: String,
-    default: true
-  },
+answer: {
+  type: String,
+  default: ''
+},
+answerHindi: {
+  type: String,
+  default: ''
+},
   explanation: String,
   explanationHindi: String,
   difficulty: {

@@ -60,12 +60,14 @@ const PyqTestPage = () => {
     setTestStarted(true);
   };
 
-  const handleAnswerSelect = (questionIndex, optionIndex) => {
-    setAnswers({
-      ...answers,
-      [questionIndex]: optionIndex
-    });
-  };
+ const handleAnswerSelect = (questionIndex, optionIndex) => {
+  const questionId = pyq.questions[questionIndex]._id;
+
+  setAnswers(prev => ({
+    ...prev,
+    [questionId]: optionIndex
+  }));
+};
 
   const handleSubmitTest = async () => {
     try {
@@ -376,7 +378,7 @@ const PyqTestPage = () => {
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                 index === currentQuestion
                   ? 'bg-green-600 text-white shadow-md'
-                  : answers[index] !== undefined
+                  : answers[pyq.questions[index]._id] !== undefined
                   ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -420,41 +422,50 @@ const PyqTestPage = () => {
         </div>
 
         {/* Options */}
-        <div className="space-y-3">
-          {pyq.questions?.[currentQuestion]?.options?.map((option, index) => (
-            <div
-              key={index}
-              onClick={() => handleAnswerSelect(currentQuestion, index)}
-              className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-sm ${
-                answers[currentQuestion] === index
-                  ? 'border-green-500 bg-green-50 shadow-sm'
-                  : 'border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-start">
-                <div className={`w-8 h-8 rounded-full border flex items-center justify-center mr-3 mt-1 flex-shrink-0 ${
-                  answers[currentQuestion] === index
-                    ? 'border-green-500 bg-green-500 text-white'
-                    : 'border-gray-300'
-                }`}>
-                  {String.fromCharCode(65 + index)}
-                </div>
-                <div className="flex-1">
-                  {option.textHindi ? (
-                    <>
-                      <div className="hindi">{option.textHindi}</div>
-                      {option.text && option.textHindi !== option.text && (
-                        <div className="text-gray-600 text-sm mt-1">{option.text}</div>
-                      )}
-                    </>
-                  ) : (
-                    <div>{option.text || '(कोई टेक्स्ट नहीं)'}</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+<div className="space-y-3">
+  {pyq.questions?.[currentQuestion]?.options?.map((option, index) => {
+    const questionId = pyq.questions[currentQuestion]._id;
+
+    return (
+      <div
+        key={index}
+        onClick={() => handleAnswerSelect(currentQuestion, index)}
+        className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-sm ${
+          answers[questionId] === index
+            ? 'border-green-500 bg-green-50 shadow-sm'
+            : 'border-gray-200 hover:bg-gray-50'
+        }`}
+      >
+        <div className="flex items-start">
+          <div
+            className={`w-8 h-8 rounded-full border flex items-center justify-center mr-3 mt-1 flex-shrink-0 ${
+              answers[questionId] === index
+                ? 'border-green-500 bg-green-500 text-white'
+                : 'border-gray-300'
+            }`}
+          >
+            {String.fromCharCode(65 + index)}
+          </div>
+
+          <div className="flex-1">
+            {option.textHindi ? (
+              <>
+                <div className="hindi">{option.textHindi}</div>
+                {option.text && option.textHindi !== option.text && (
+                  <div className="text-gray-600 text-sm mt-1">
+                    {option.text}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div>{option.text || '(कोई टेक्स्ट नहीं)'}</div>
+            )}
+          </div>
         </div>
+      </div>
+    );
+  })}
+</div>
 
         {/* Question Navigation Buttons */}
         <div className="flex justify-between mt-8">

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { api } from "../utils/api";
+import HeroSection from "../components/HeroSection";
 
 /* ================= TYPES ================= */
 const DataState = {
@@ -299,36 +300,7 @@ abortControllerRef.current = controller;
  }, [fetchData]);
 
 
-  const heroSection = useMemo(
-    () => (
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-12 md:py-16">
-        <div className="max-w-7xl mx-auto text-center px-4">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
-            सिविल सेवा सफलता का आपका मार्गदर्शक
-          </h1>
-          <p className="text-base md:text-xl max-w-3xl mx-auto mb-8 text-primary-100 leading-relaxed">
-            UPSC, राज्य PCS और अन्य सिविल सेवा परीक्षाओं के लिए विशेषज्ञ मार्गदर्शन
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-3">
-            <Link
-              to="/courses"
-              className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors duration-200 shadow-md"
-            >
-              कोर्सेज देखें
-            </Link>
-            <Link
-              to="/pyqs"
-              className="border-2 border-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors duration-200"
-            >
-              मुफ्त PYQs
-            </Link>
-          </div>
-        </div>
-      </section>
-    ),
-    []
-  );
-
+ 
   const renderContent = useCallback((type) => {
     const currentStatus = status[type];
     const currentData = data[type];
@@ -376,7 +348,7 @@ if (currentStatus === DataState.ERROR) {
 
   return (
     <div className="min-h-screen">
-      {heroSection}
+      <HeroSection />
 {/* 
        {(error.courses || error.blogs || error.pyqs) && (
 
