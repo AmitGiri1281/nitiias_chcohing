@@ -15,6 +15,7 @@ import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
+import ProfilePage from './pages/ProfilePage';
 
 // PYQ Pages - Add these imports
 import Pyqs from './pages/Pyqs';
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/pyqs" element={<Pyqs />} />
                 <Route path="/pyq/:id" element={<PyqTestPage />} /> {/* Add this */}
                 <Route path="/pyq/:id/study" element={<PyqStudyPage />} /> {/* Add this */}
+                <Route path="/profile" element={<ProfilePage />} />
               </Routes>
             </main>
             <Footer />

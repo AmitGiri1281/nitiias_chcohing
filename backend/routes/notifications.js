@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
 
-// Get user notifications
+// Get all notifications
 router.get('/', async (req, res) => {
   try {
     const notifications = await Notification.find();
@@ -12,10 +12,24 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get unread count
+router.get('/unread-count', async (req, res) => {
+  try {
+    const count = await Notification.countDocuments({ isRead: false });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Mark as read
 router.put('/:id', async (req, res) => {
-  await Notification.findByIdAndUpdate(req.params.id, { isRead: true });
-  res.json({ success: true });
+  try {
+    await Notification.findByIdAndUpdate(req.params.id, { isRead: true });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
