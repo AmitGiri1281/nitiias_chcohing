@@ -17,7 +17,7 @@ const upload = multer({
   },
   fileFilter: function (req, file, cb) {
     // Allow both images and PDFs
-    const filetypes = /jpeg|jpg|png|gif|pdf/;
+    const filetypes = /jpeg|jpg|png|gif|webp/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
 

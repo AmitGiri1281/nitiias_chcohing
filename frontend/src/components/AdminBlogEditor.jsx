@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import imageCompression from "browser-image-compression";
 import { 
   FaBold, 
   FaItalic, 
@@ -15,7 +16,9 @@ import {
   FaEyeSlash,
   FaExclamationCircle,
   FaFont,
-  FaMagic
+  FaMagic,
+  FaCloudUploadAlt,  // Added for better UX
+  FaSpinner          // Added for loading state
 } from "react-icons/fa";
 
 // Utility functions outside component for better performance
@@ -48,7 +51,9 @@ const fontOptions = [
 
 const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null); // Added for image upload
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false); // Added for upload state
 
   const [blogData, setBlogData] = useState(
     initialData || {
@@ -156,7 +161,7 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
     
     const formData = new FormData();
 
-    // ✅ SAME API KEYS (IMPORTANT - NO CHANGES)
+    // ✅ SAME API KEYS (NO CHANGES - EXACTLY AS BEFORE)
     formData.append("title", blogData.titleHindi);
     formData.append("titleHindi", blogData.titleHindi);
     formData.append("content", blogData.contentHindi);
@@ -198,6 +203,166 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
     };
     reader.readAsDataURL(file);
   };
+
+  // ===== NEW FUNCTION: Insert Image in Content =====
+  const insertImageInContent = () => {
+    if (!textareaRef.current) return;
+    
+    const imageUrl = prompt("🔗 छवि URL दर्ज करें (Image URL):");
+    
+    if (!imageUrl) return;
+    
+    // Validate URL (basic security)
+    try {
+      new URL(imageUrl);
+    } catch {
+      alert("❌ कृपया एक वैध URL दर्ज करें");
+      return;
+    }
+    
+    // Block malicious URLs (optional)
+    const blockedDomains = ['localhost', '127.0.0.1', '0.0.0.0'];
+    try {
+      const urlObj = new URL(imageUrl);
+      if (blockedDomains.includes(urlObj.hostname)) {
+        alert("❌ यह URL अनुमत नहीं है");
+        return;
+      }
+    } catch {}
+    
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    
+    // Generate alt text from selection or use default
+    const selectedText = blogData.contentHindi.substring(start, end).trim();
+    const altText = selectedText || "Blog Image";
+    
+    // Create markdown image syntax
+    const imageMarkdown = `\n![${altText}](${imageUrl})\n`;
+    
+    const newContent = 
+      blogData.contentHindi.substring(0, start) + 
+      imageMarkdown + 
+      blogData.contentHindi.substring(end);
+    
+    setBlogData(prev => ({
+      ...prev,
+      contentHindi: newContent
+    }));
+    
+    // Set cursor position after inserted image
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + imageMarkdown.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  // ===== NEW FUNCTION: Upload Image to Server and Insert =====
+  const uploadAndInsertImage = async () => {
+    if (!textareaRef.current) return;
+    
+    // Trigger file input click
+    fileInputRef.current?.click();
+  };
+
+const handleContentImageUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  setIsUploadingImage(true);
+
+  try {
+
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.7,
+      maxWidthOrHeight: 1600,
+      useWebWorker: true
+    });
+
+    const formData = new FormData();
+    formData.append("image", compressedFile);
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch("/api/upload/image", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Upload failed");
+    }
+
+    const imageUrl = data.url;
+
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+
+    const imageMarkdown = `\n![Image](${imageUrl})\n`;
+
+    setBlogData(prev => ({
+      ...prev,
+      contentHindi:
+        prev.contentHindi.substring(0, start) +
+        imageMarkdown +
+        prev.contentHindi.substring(start)
+    }));
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Image upload failed");
+  }
+
+  setIsUploadingImage(false);
+};
+
+const handleDrop = async (e) => {
+  e.preventDefault();
+
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  try {
+
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.7,
+      maxWidthOrHeight: 1600,
+      useWebWorker: true
+    });
+
+    const formData = new FormData();
+    formData.append("image", compressedFile);
+
+  const token = localStorage.getItem("token");
+
+const res = await fetch("/api/upload/image", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`
+  },
+  body: formData
+});
+
+    const data = await res.json();
+
+    const imageMarkdown = `\n![Image](${data.url})\n`;
+
+    setBlogData(prev => ({
+      ...prev,
+      contentHindi: prev.contentHindi + imageMarkdown
+    }));
+
+  } catch (err) {
+    console.error("Upload failed", err);
+  }
+};
 
   const handleFormatText = (format) => {
     if (!textareaRef.current) return;
@@ -269,12 +434,19 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
       .replace(/> (.*?)(\n|$)/g, '<blockquote class="border-l-4 border-blue-500 pl-4 italic text-gray-700 bg-blue-50 py-2 my-4">$1</blockquote>')
       .replace(/\n- (.*?)(\n|$)/g, '<li class="ml-6 list-disc mb-2 text-gray-700 pl-2">$1</li>')
       .replace(/\n1\. (.*?)(\n|$)/g, '<li class="ml-6 list-decimal mb-2 text-gray-700 pl-2">$1</li>')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 font-medium underline decoration-dotted hover:decoration-solid transition-colors" target="_blank">$1</a>')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 font-medium underline decoration-dotted hover:decoration-solid transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
+      // ✅ NEW: Handle image markdown
+      .replace(
+        /!\[(.*?)\]\((.*?)\)/g, 
+        '<img src="$2" alt="$1" class="rounded-xl my-8 w-full max-w-3xl mx-auto shadow-xl border border-gray-200" loading="lazy" />'
+      )
       .replace(/\n\n/g, '</p><p class="mb-6 text-gray-700 leading-relaxed">')
       .replace(/\n/g, '<br>');
     
     return `<div class="prose prose-lg max-w-none ${fonts[fontStyle]}"><p class="mb-6 text-gray-700 leading-relaxed">${formatted}</p></div>`;
   };
+
+
 
   const handleTagsChange = (value) => {
     const tagsArray = value.split(",")
@@ -330,13 +502,28 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
 
 [अधिक जानकारी के लिए यहाँ क्लिक करें](https://example.com)
 
-<u>सफलता की कुंजी</u>: नियमितता और गुणवत्ता!`
+<u>सफलता की कुंजी</u>: नियमितता और गुणवत्ता!
+
+## 📸 छवि उदाहरण
+
+![उदाहरण छवि](https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600)
+
+ब्लॉग में छवियाँ सामग्री को आकर्षक बनाती हैं।`
       }));
     }
   };
 
   return (
     <div className={`bg-gradient-to-br from-gray-50 via-white to-blue-50/30 p-8 rounded-3xl shadow-2xl max-w-5xl mx-auto border border-gray-300/50 backdrop-blur-sm ${fonts[fontStyle]}`}>
+      {/* Hidden file input for content images */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleContentImageUpload}
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+        className="hidden"
+      />
+
       {/* Stylish Header */}
       <div className="relative mb-10">
         <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-xl"></div>
@@ -574,6 +761,32 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                   >
                     <span className="text-gray-700 font-bold text-lg">"</span>
                   </button>
+                  {/* ✅ NEW: Image Insert Buttons */}
+                  <button
+                    type="button"
+                    onClick={insertImageInContent}
+                    className="p-2.5 hover:bg-white rounded-xl transition-all hover:scale-105 active:scale-95 shadow-sm hover:shadow-md bg-gradient-to-r from-blue-500/10 to-purple-500/10"
+                    title="छवि URL डालें"
+                    aria-label="छवि URL डालें"
+                  >
+                    <FaImage className="text-blue-600" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={uploadAndInsertImage}
+                    disabled={isUploadingImage}
+                    className={`p-2.5 hover:bg-white rounded-xl transition-all hover:scale-105 active:scale-95 shadow-sm hover:shadow-md ${
+                      isUploadingImage ? 'opacity-50 cursor-not-allowed' : 'bg-gradient-to-r from-green-500/10 to-emerald-500/10'
+                    }`}
+                    title="छवि अपलोड करें"
+                    aria-label="छवि अपलोड करें"
+                  >
+                    {isUploadingImage ? (
+                      <FaSpinner className="text-green-600 animate-spin" />
+                    ) : (
+                      <FaCloudUploadAlt className="text-green-600" />
+                    )}
+                  </button>
                 </div>
               </div>
             )}
@@ -588,6 +801,8 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
             <>
               <textarea
                 ref={textareaRef}
+                onDrop={handleDrop}
+onDragOver={(e) => e.preventDefault()}
                 name="content"
                 required
                 value={blogData.contentHindi}
@@ -606,7 +821,11 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
 • मुख्य बिंदुओं को विस्तार से समझाएँ
 • उदाहरण और कहानियाँ जोड़ें
 • पाठक के लिए मूल्यवान जानकारी दें
-• प्रेरणादायक समापन लिखें"
+• प्रेरणादायक समापन लिखें
+
+📸 छवि डालने के लिए: 
+   - URL से: Image बटन दबाएँ
+   - अपलोड: Upload बटन दबाएँ"
               />
               {errors.contentHindi && (
                 <div className="mt-4 p-4 bg-gradient-to-r from-red-50/80 to-orange-50/80 rounded-xl border border-red-300/50 flex items-center gap-4">
@@ -657,7 +876,7 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
                   : 'bg-gradient-to-r from-gray-100 to-gray-200/50 border border-gray-300/50 text-gray-700'
               }`}>
                 <FaImage className={imageFile ? 'text-emerald-600' : 'text-gray-500'} />
-                <span>{imageFile ? "✅ छवि चयनित" : "📷 छवि जोड़ें"}</span>
+                <span>{imageFile ? "✅ छवि चयनित" : "📷 फ़ीचर्ड छवि"}</span>
               </div>
               
               <div className="hidden sm:block">
@@ -1076,8 +1295,8 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
               icon: "🖼️",
               title: "विजुअल अपील",
               tips: [
-                "उच्च गुणवत्ता छवि",
-                "प्रासंगिक चित्र",
+                "हर 300 शब्दों पर एक छवि",
+                "प्रासंगिक चित्र चुनें",
                 "उचित आकार अनुपात"
               ]
             }
@@ -1106,7 +1325,7 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
               { code: "## Text", result: "बड़ा हेडिंग", class: "text-2xl font-bold" },
               { code: "**Text**", result: "बोल्ड टेक्स्ट", class: "font-bold" },
               { code: "*Text*", result: "इटैलिक टेक्स्ट", class: "italic" },
-              { code: "> Text", result: "ब्लॉककोट", class: "border-l-4 border-blue-500 pl-4 italic" }
+              { code: "![alt](url)", result: "छवि डालें", class: "text-blue-600" }
             ].map((item, idx) => (
               <div key={idx} className="bg-white/50 p-4 rounded-xl border border-blue-200/30">
                 <div className="text-sm font-mono text-gray-600 mb-2">{item.code}</div>

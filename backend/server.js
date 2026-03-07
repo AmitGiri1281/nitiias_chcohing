@@ -7,6 +7,8 @@ const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
 
+
+
 // ================= ENV =================
 dotenv.config();
 
@@ -19,7 +21,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "https://www.nitiias.org",
-      "http://localhost:3000",
+      "http://localhost:5173",
     ],
     methods: ["GET", "POST"],
     credentials: true,
@@ -48,17 +50,21 @@ app.use(
   cors({
     origin: [
       "https://www.nitiias.org",
-      "http://localhost:3000",
+      "http://localhost:5173",
     ],
     credentials: true,
   })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Static uploads
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 // ================= ROUTES =================
 app.use("/api/notifications", require("./routes/notifications"));
@@ -66,16 +72,28 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/blogs", require("./routes/blogs"));
 app.use("/api/courses", require("./routes/courses"));
 app.use("/api/pyqs", require("./routes/pyqs"));
+app.use("/api/upload", require("./routes/upload"));
 
 // ================= HEALTH CHECK =================
 app.get("/", (req, res) => {
   res.send("🚀 API is running...");
 });
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API route not found",
+  });
+});
+
 // ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
   console.error("Server Error:", err.stack);
-  res.status(500).json({ message: "Something went wrong" });
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Server error",
+  });
 });
 
 // ================= DATABASE + SERVER =================
