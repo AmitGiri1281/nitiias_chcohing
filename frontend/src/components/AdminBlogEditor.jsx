@@ -266,7 +266,6 @@ const AdminBlogEditor = ({ onSave, initialData, onCancel }) => {
     // Trigger file input click
     fileInputRef.current?.click();
   };
-
 const handleContentImageUpload = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -274,22 +273,46 @@ const handleContentImageUpload = async (e) => {
   setIsUploadingImage(true);
 
   try {
+    // Better file validation
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    
+    if (!validImageTypes.includes(file.type)) {
+      throw new Error(`Invalid file type: ${file.type}. Only JPEG, PNG, WEBP, GIF are allowed`);
+    }
 
+    // Check file extension as well
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    const validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    
+    if (!validExtensions.includes(fileExtension)) {
+      throw new Error(`Invalid file extension: .${fileExtension}`);
+    }
+
+    // Compress image
     const compressedFile = await imageCompression(file, {
       maxSizeMB: 0.7,
       maxWidthOrHeight: 1600,
-      useWebWorker: true
+      useWebWorker: false,
+      fileType: file.type // Preserve original file type
     });
 
     const formData = new FormData();
-    formData.append("image", compressedFile);
+    formData.append("image", compressedFile, compressedFile.name); // Add filename
 
     const token = localStorage.getItem("token");
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-    const response = await fetch("/api/upload/image", {
+    console.log("Uploading file:", {
+      name: compressedFile.name,
+      type: compressedFile.type,
+      size: compressedFile.size
+    });
+
+    const response = await fetch(`${API_BASE_URL}/upload/image`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`
+        // Don't set Content-Type - browser will set it with boundary
       },
       body: formData
     });
@@ -297,73 +320,70 @@ const handleContentImageUpload = async (e) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Upload failed");
+      throw new Error(data.message || data.error || "Upload failed");
+    }
+
+    if (!data.url) {
+      throw new Error("No URL returned from server");
     }
 
     const imageUrl = data.url;
 
     const textarea = textareaRef.current;
     const start = textarea.selectionStart;
-
-    const imageMarkdown = `\n![Image](${imageUrl})\n`;
+    const end = textarea.selectionEnd;
+    
+    const selectedText = blogData.contentHindi.substring(start, end).trim();
+    const altText = selectedText || file.name.split('.')[0] || "Image";
+    
+    const imageMarkdown = `\n![${altText}](${imageUrl})\n`;
 
     setBlogData(prev => ({
       ...prev,
       contentHindi:
         prev.contentHindi.substring(0, start) +
         imageMarkdown +
-        prev.contentHindi.substring(start)
+        prev.contentHindi.substring(end)
     }));
 
-  } catch (err) {
-    console.error(err);
-    alert("❌ Image upload failed");
-  }
+    // Success message
+    alert("✅ Image uploaded successfully!");
 
-  setIsUploadingImage(false);
-};
-
-const handleDrop = async (e) => {
-  e.preventDefault();
-
-  const file = e.dataTransfer.files[0];
-  if (!file) return;
-
-  try {
-
-    const compressedFile = await imageCompression(file, {
-      maxSizeMB: 0.7,
-      maxWidthOrHeight: 1600,
-      useWebWorker: true
-    });
-
-    const formData = new FormData();
-    formData.append("image", compressedFile);
-
-  const token = localStorage.getItem("token");
-
-const res = await fetch("/api/upload/image", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${token}`
-  },
-  body: formData
-});
-
-    const data = await res.json();
-
-    const imageMarkdown = `\n![Image](${data.url})\n`;
-
-    setBlogData(prev => ({
-      ...prev,
-      contentHindi: prev.contentHindi + imageMarkdown
-    }));
-
-  } catch (err) {
-    console.error("Upload failed", err);
+   } catch (err) {
+    console.error("Upload error", err);
+  } finally {
+    setIsUploadingImage(false);
+    e.target.value = "";
   }
 };
+// const handleDrop
+// const formData = new FormData();
+// formData.append("image", compressedFile);
 
+// const token = localStorage.getItem("token");
+
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// const res = await fetch(`${API_BASE_URL}/upload/image`, {
+//   method: "POST",
+//   headers: {
+//     Authorization: `Bearer ${token}`
+//   },
+//   body: formData
+// });
+
+//     const data = await res.json();
+
+//     const imageMarkdown = `\n![Image](${data.url})\n`;
+
+//     setBlogData(prev => ({
+//       ...prev,
+//       contentHindi: prev.contentHindi + imageMarkdown
+//     }));
+
+  
+
+//   };
   const handleFormatText = (format) => {
     if (!textareaRef.current) return;
     
