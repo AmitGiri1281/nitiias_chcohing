@@ -104,60 +104,8 @@ http://localhost:5173
 
 ---
 
-# 📸 Application Screenshots
 
-Create the following directory.
 
-```text
-docs/
-└── images/
-```
-
-Add screenshots with these filenames:
-
-```text
-docs/images/home.png
-docs/images/courses.png
-docs/images/blog.png
-docs/images/pyqs.png
-docs/images/admin-dashboard.png
-docs/images/login.png
-docs/images/profile.png
-```
-
-Example:
-
-## Home Page
-
-```markdown
-![Home](docs/images/home.png)
-```
-
-## Courses
-
-```markdown
-![Courses](docs/images/courses.png)
-```
-
-## Blog
-
-```markdown
-![Blog](docs/images/blog.png)
-```
-
-## Previous Year Questions
-
-```markdown
-![PYQs](docs/images/pyqs.png)
-```
-
-## Admin Dashboard
-
-```markdown
-![Admin Dashboard](docs/images/admin-dashboard.png)
-```
-
----
 
 # 🌍 Deployment
 
